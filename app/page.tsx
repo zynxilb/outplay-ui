@@ -1,29 +1,17 @@
 "use client";
 
-import dynamic from "next/dynamic";
-
-const NextChessground = dynamic(() => import("next-chessground"), {
-  ssr: false,
-  loading: () => (
-    <div
-      style={{
-        width: "500px",
-        height: "500px",
-        background: "#3d3a37",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        color: "#7d7a76",
-      }}
-    >
-      جاري التحميل...
-    </div>
-  ),
-});
+import { Chessboard } from "@mdwebb/react-chess";
+import "@mdwebb/react-chess/styles";
 
 export default function Home() {
   return (
-    <main style={{ padding: "40px", minHeight: "100vh", background: "#161512" }}>
+    <main
+      style={{
+        padding: "40px",
+        minHeight: "100vh",
+        background: "#161512",
+      }}
+    >
       <h1
         style={{
           fontSize: "32px",
@@ -35,18 +23,20 @@ export default function Home() {
         ♟️ Outplay
       </h1>
 
-      <div style={{ display: "flex", gap: "30px", flexWrap: "wrap" }}>
-        <div
-          style={{
-            background: "#262421",
-            padding: "16px",
-            borderRadius: "4px",
-            width: "500px",
-            maxWidth: "100%",
-          }}
-        >
-          <NextChessground />
-        </div>
+      <div
+        style={{
+          background: "#262421",
+          padding: "16px",
+          borderRadius: "4px",
+          width: "fit-content",
+        }}
+      >
+        <Chessboard
+          width={500}
+          height={500}
+          theme="brown"
+          showBoardControls
+        />
       </div>
     </main>
   );
