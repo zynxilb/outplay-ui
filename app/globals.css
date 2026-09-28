@@ -1,5 +1,7 @@
 @import "tailwindcss";
 
+@source "../node_modules/@mdwebb/react-chess/dist";
+
 * {
   box-sizing: border-box;
 }
