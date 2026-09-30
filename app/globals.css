@@ -1,7 +1,5 @@
 @import "tailwindcss";
 
-@source "../node_modules/@mdwebb/react-chess/dist";
-
 * {
   box-sizing: border-box;
 }
@@ -13,4 +11,16 @@ html, body {
   margin: 0;
   padding: 0;
   min-height: 100vh;
+}
+
+/* مهم: الرقعة والـ wrapper بتاعها touch-action: none */
+.board-wrapper {
+  touch-action: none !important;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+.board-wrapper * {
+  touch-action: none !important;
 }

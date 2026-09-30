@@ -1,5 +1,4 @@
-import type { NextConfig } from "next";
-
-const nextConfig: NextConfig = {};
-
+const nextConfig = {
+  allowedDevOrigins: ["*.trycloudflare.com"],
+};
 export default nextConfig;
