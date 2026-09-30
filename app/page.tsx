@@ -9,9 +9,12 @@ import { Chess } from "chess.js";
 import { Board } from "@/components/Board";
 import { EvalBar } from "@/components/EvalBar";
 import { OpeningCard } from "@/components/OpeningCard";
+import { MoveList } from "@/components/MoveList";
+import { StatsCard } from "@/components/StatsCard";
 
 import { useOpeningBook } from "@/hooks/useOpeningBook";
 import { useStockfishEval } from "@/hooks/useStockfishEval";
+import { useMoveHistory } from "@/hooks/useMoveHistory";
 
 import { squareIndexToAlgebraic } from "@/lib/chess-helpers";
 import { PROMOTION_PIECES } from "@/lib/types";
@@ -23,11 +26,26 @@ export default function Home() {
   const [fen, setFen] = useState(() => new Chess().fen());
 
   const { book, opening } = useOpeningBook(fen);
-  const { evalCp } = useStockfishEval(fen);
+  const {
+    evalCp,
+    evaluatedFen,
+    engineReady,
+    cacheVersion,
+    getEvalForFen,
+  } = useStockfishEval(fen);
+
+  const { moves, recordMove } = useMoveHistory({
+    fen,
+    evaluatedFen,
+    engineReady,
+    cacheVersion,
+    openingBook: book,
+    getEvalForFen,
+  });
 
   const handleMove = useCallback(
-    (move: PackedMove) => {
-      const { from, to, promo } = unpackMove(move);
+    (packedMove: PackedMove) => {
+      const { from, to, promo } = unpackMove(packedMove);
       const options: MoveOptions = {
         from: squareIndexToAlgebraic(from),
         to: squareIndexToAlgebraic(to),
@@ -36,13 +54,17 @@ export default function Home() {
         options.promotion = PROMOTION_PIECES[promo];
       }
       try {
+        const fenBefore = chess.fen();
         const result = chess.move(options);
-        if (result) setFen(chess.fen());
+        if (!result) return;
+        const fenAfter = chess.fen();
+        recordMove(result, fenBefore, fenAfter);
+        setFen(fenAfter);
       } catch {
-        // Illegal move — ignore. The board will keep its current position.
+        // Illegal move — ignore.
       }
     },
-    [chess]
+    [chess, recordMove]
   );
 
   return (
@@ -68,7 +90,18 @@ export default function Home() {
       <div style={{ display: "flex", gap: "16px", flexWrap: "wrap" }}>
         <EvalBar evalCp={evalCp} height={500} />
         <Board game={game} onMove={handleMove} />
-        <OpeningCard opening={opening} bookLoading={book === null} />
+
+        <div
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            gap: "12px",
+          }}
+        >
+          <OpeningCard opening={opening} bookLoading={book === null} />
+          <StatsCard moves={moves} />
+          <MoveList moves={moves} />
+        </div>
       </div>
     </main>
   );

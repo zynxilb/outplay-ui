@@ -1,6 +1,8 @@
 // lib/types.ts
 // Shared types for the Outplay app.
 
+import type { MoveClassification } from "./chess-helpers";
+
 /** A single named chess opening from the ECO book. */
 export type Opening = {
   eco: string;
@@ -13,24 +15,33 @@ export type OpeningBook = Record<string, Opening>;
 /** Type of evaluation score from Stockfish. */
 export type EvalScoreType = "cp" | "mate";
 
-/** A Stockfish evaluation score. */
 export type EvalScore = {
   type: EvalScoreType;
   value: number;
 };
 
-/** The response shape returned by `/api/eval`. */
 export type EvalResponse = {
   bestmove: string;
   score: EvalScore;
 };
 
-/** Options passed to chess.js when making a move. */
 export type MoveOptions = {
   from: string;
   to: string;
   promotion?: string;
 };
 
-/** The promotion piece letters in the same order as gigaboard promo codes. */
 export const PROMOTION_PIECES = ["", "n", "b", "r", "q"] as const;
+
+/** A single played move with its classification and evals. */
+export type ClassifiedMove = {
+  ply: number;
+  san: string;
+  from: string;
+  to: string;
+  color: "w" | "b";
+  cpLoss: number;
+  classification: MoveClassification;
+  evalBefore: number;
+  evalAfter: number;
+};
