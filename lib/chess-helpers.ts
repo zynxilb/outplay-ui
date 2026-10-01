@@ -173,3 +173,10 @@ export function estimateGameRating(accuracy: number): number {
   const rating = 3100 * Math.pow(accuracy / 100, 2) - 500;
   return Math.max(0, Math.round(rating));
 }
+
+/** Convert algebraic square (e.g. "e4") to a gigaboard SquareIndex (0-63). */
+export function algebraicToSquareIndex(square: string): number {
+  const file = square.charCodeAt(0) - 97;
+  const rank = parseInt(square[1], 10) - 1;
+  return rank * 8 + file;
+}

@@ -29,6 +29,7 @@ export default function Home() {
   const { book, opening } = useOpeningBook(fen);
   const {
     evalCp,
+    bestMove,
     evaluatedFen,
     engineReady,
     cacheVersion,
@@ -95,7 +96,7 @@ export default function Home() {
 
       <div style={{ display: "flex", gap: "16px", flexWrap: "wrap" }}>
         <EvalBar evalCp={evalCp} height={500} />
-        <Board game={game} onMove={handleMove} />
+        <Board game={game} onMove={handleMove} bestMove={bestMove} />
 
         <div
           style={{
