@@ -3,16 +3,20 @@
 
 import { useMemo } from "react";
 import type { ClassifiedMove } from "@/lib/types";
-import type { MoveClassification } from "@/lib/chess-helpers";
+import {
+  estimateGameRating,
+  type MoveClassification,
+} from "@/lib/chess-helpers";
 
 type StatsCardProps = {
   moves: ClassifiedMove[];
 };
 
-type ClassCounts = {
-  white: Record<MoveClassification, number>;
-  black: Record<MoveClassification, number>;
-  accuracy: { white: number; black: number };
+type SideStats = {
+  accuracy: number;
+  gameRating: number;
+  counts: Record<MoveClassification, number>;
+  totalMoves: number;
 };
 
 const ORDER: MoveClassification[] = [
@@ -76,36 +80,27 @@ function emptyCounts(): Record<MoveClassification, number> {
   };
 }
 
-function computeStats(moves: ClassifiedMove[]): ClassCounts {
-  const white = emptyCounts();
-  const black = emptyCounts();
-  let whiteAccSum = 0;
-  let whiteAccCount = 0;
-  let blackAccSum = 0;
-  let blackAccCount = 0;
+function computeSideStats(moves: ClassifiedMove[], isWhite: boolean): SideStats {
+  const sideMoves = moves.filter((m) => (m.color === "w") === isWhite);
+  const counts = emptyCounts();
 
-  for (const m of moves) {
-    const isWhite = m.color === "w";
-    (isWhite ? white : black)[m.classification] += 1;
+  let accSum = 0;
+  let accCount = 0;
 
+  for (const m of sideMoves) {
+    counts[m.classification] += 1;
     if (m.classification === "Book") continue;
-    const acc = moveAccuracy(m.evalBefore, m.evalAfter, m.color);
-    if (isWhite) {
-      whiteAccSum += acc;
-      whiteAccCount += 1;
-    } else {
-      blackAccSum += acc;
-      blackAccCount += 1;
-    }
+    accSum += moveAccuracy(m.evalBefore, m.evalAfter, m.color);
+    accCount += 1;
   }
 
+  const accuracy = accCount > 0 ? Math.round(accSum / accCount) : 0;
+
   return {
-    white,
-    black,
-    accuracy: {
-      white: whiteAccCount > 0 ? Math.round(whiteAccSum / whiteAccCount) : 0,
-      black: blackAccCount > 0 ? Math.round(blackAccSum / blackAccCount) : 0,
-    },
+    accuracy,
+    gameRating: estimateGameRating(accuracy),
+    counts,
+    totalMoves: sideMoves.length,
   };
 }
 
@@ -119,7 +114,13 @@ const ROW_STYLE: React.CSSProperties = {
 };
 
 export function StatsCard({ moves }: StatsCardProps) {
-  const stats = useMemo(() => computeStats(moves), [moves]);
+  const stats = useMemo(
+    () => ({
+      white: computeSideStats(moves, true),
+      black: computeSideStats(moves, false),
+    }),
+    [moves]
+  );
 
   if (moves.length === 0) {
     return (
@@ -149,6 +150,7 @@ export function StatsCard({ moves }: StatsCardProps) {
         overflow: "hidden",
       }}
     >
+      {/* Header */}
       <div
         style={{
           display: "grid",
@@ -167,10 +169,11 @@ export function StatsCard({ moves }: StatsCardProps) {
         <div style={{ textAlign: "center" }}>أسود</div>
       </div>
 
+      {/* Rows */}
       {ORDER.map((key) => {
         const style = STYLES[key];
-        const w = stats.white[key];
-        const b = stats.black[key];
+        const w = stats.white.counts[key];
+        const b = stats.black.counts[key];
         return (
           <div key={key} style={ROW_STYLE}>
             <div
@@ -211,6 +214,7 @@ export function StatsCard({ moves }: StatsCardProps) {
         );
       })}
 
+      {/* Accuracy + Game Rating footer */}
       <div
         style={{
           display: "grid",
@@ -218,6 +222,7 @@ export function StatsCard({ moves }: StatsCardProps) {
           padding: "12px",
           background: "#262421",
           fontSize: "13px",
+          borderTop: "1px solid #3C3A38",
         }}
       >
         <div style={{ color: "#C3C2C1", fontWeight: 700 }}>الدقة</div>
@@ -230,7 +235,7 @@ export function StatsCard({ moves }: StatsCardProps) {
             fontSize: "16px",
           }}
         >
-          {stats.accuracy.white}%
+          {stats.white.accuracy}%
         </div>
         <div />
         <div
@@ -242,7 +247,42 @@ export function StatsCard({ moves }: StatsCardProps) {
             fontSize: "16px",
           }}
         >
-          {stats.accuracy.black}%
+          {stats.black.accuracy}%
+        </div>
+      </div>
+
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: "1fr 60px 40px 60px",
+          padding: "12px",
+          background: "#262421",
+          fontSize: "13px",
+        }}
+      >
+        <div style={{ color: "#C3C2C1", fontWeight: 700 }}>تقييم المباراة</div>
+        <div
+          style={{
+            textAlign: "center",
+            color: "#95bb4a",
+            fontWeight: 800,
+            fontFamily: "ui-monospace, monospace",
+            fontSize: "14px",
+          }}
+        >
+          {stats.white.gameRating}
+        </div>
+        <div />
+        <div
+          style={{
+            textAlign: "center",
+            color: "#95bb4a",
+            fontWeight: 800,
+            fontFamily: "ui-monospace, monospace",
+            fontSize: "14px",
+          }}
+        >
+          {stats.black.gameRating}
         </div>
       </div>
     </div>

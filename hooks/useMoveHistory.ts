@@ -3,10 +3,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { Move } from "chess.js";
-import {
-  normaliseFenForOpening,
-  classifyMove,
-} from "@/lib/chess-helpers";
+import { normaliseFenForOpening, classifyMove } from "@/lib/chess-helpers";
 import type { EvalResult } from "@/lib/chess-helpers";
 import type { ClassifiedMove, OpeningBook } from "@/lib/types";
 
@@ -14,6 +11,7 @@ type PendingMove = {
   move: Move;
   fenBefore: string;
   fenAfter: string;
+  isSacrifice: boolean;
 };
 
 type UseMoveHistoryOptions = {
@@ -37,8 +35,13 @@ export function useMoveHistory({
   const pendingRef = useRef<PendingMove | null>(null);
 
   const recordMove = useCallback(
-    (move: Move, fenBefore: string, fenAfter: string) => {
-      pendingRef.current = { move, fenBefore, fenAfter };
+    (
+      move: Move,
+      fenBefore: string,
+      fenAfter: string,
+      isSacrifice: boolean
+    ) => {
+      pendingRef.current = { move, fenBefore, fenAfter, isSacrifice };
     },
     []
   );
@@ -59,11 +62,6 @@ export function useMoveHistory({
     const evalAfter = getEvalForFen(pending.fenAfter);
     if (!evalBefore || !evalAfter) return;
 
-    const isWhite = pending.move.color === "w";
-    const cpLoss = isWhite
-      ? Math.max(0, evalBefore.score - evalAfter.score)
-      : Math.max(0, evalAfter.score - evalBefore.score);
-
     const playedUci =
       pending.move.from +
       pending.move.to +
@@ -81,13 +79,13 @@ export function useMoveHistory({
         from: pending.move.from,
         to: pending.move.to,
         color: pending.move.color,
-        cpLoss,
         classification: classifyMove({
-          cpLoss,
           isBest,
           isBook,
+          isSacrifice: pending.isSacrifice,
           evalBefore: evalBefore.score,
           evalAfter: evalAfter.score,
+          secondBestEval: evalBefore.secondScore,
           moverColor: pending.move.color,
         }),
         evalBefore: evalBefore.score,

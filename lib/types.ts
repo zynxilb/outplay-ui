@@ -23,6 +23,7 @@ export type EvalScore = {
 export type EvalResponse = {
   bestmove: string;
   score: EvalScore;
+  secondScore: EvalScore | null;
 };
 
 export type MoveOptions = {
@@ -40,7 +41,6 @@ export type ClassifiedMove = {
   from: string;
   to: string;
   color: "w" | "b";
-  cpLoss: number;
   classification: MoveClassification;
   evalBefore: number;
   evalAfter: number;

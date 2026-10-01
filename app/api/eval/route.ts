@@ -9,9 +9,16 @@ type EvalRequest = {
   depth?: number;
 };
 
-/** Extract the side-to-move letter ("w" or "b") from a FEN. */
 function sideToMove(fen: string): "w" | "b" {
   return fen.split(" ")[1] === "b" ? "b" : "w";
+}
+
+function scoreToWhitePerspective(
+  score: { type: "cp" | "mate"; value: number },
+  fen: string
+): { type: "cp" | "mate"; value: number } {
+  const multiplier = sideToMove(fen) === "w" ? 1 : -1;
+  return { type: score.type, value: score.value * multiplier };
 }
 
 export async function POST(req: Request) {
@@ -25,21 +32,20 @@ export async function POST(req: Request) {
 
     const engine = new Stockfish();
     await engine.waitReady();
-    const analysis = await engine.analyze(fen, depth);
+    // Ask for the top 2 lines so we can detect "Great" moves.
+    const analysis = await engine.analyze(fen, depth, 2);
     engine.terminate();
 
-    const rawScore = analysis.lines?.[0]?.score ?? { type: "cp", value: 0 };
-
-    // UCI-style: score is from the side-to-move perspective.
-    // Convert to White's perspective so the client can compare evals.
-    const multiplier = sideToMove(fen) === "w" ? 1 : -1;
+    const lines = analysis.lines ?? [];
+    const primary = lines[0]?.score ?? { type: "cp" as const, value: 0 };
+    const secondary = lines[1]?.score ?? null;
 
     return NextResponse.json({
       bestmove: analysis.bestmove ?? null,
-      score: {
-        type: rawScore.type,
-        value: rawScore.value * multiplier,
-      },
+      score: scoreToWhitePerspective(primary, fen),
+      secondScore: secondary
+        ? scoreToWhitePerspective(secondary, fen)
+        : null,
     });
   } catch (error: unknown) {
     const message =

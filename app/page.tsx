@@ -17,6 +17,7 @@ import { useStockfishEval } from "@/hooks/useStockfishEval";
 import { useMoveHistory } from "@/hooks/useMoveHistory";
 
 import { squareIndexToAlgebraic } from "@/lib/chess-helpers";
+import { isSacrifice } from "@/lib/sacrifice-detector";
 import { PROMOTION_PIECES } from "@/lib/types";
 import type { MoveOptions } from "@/lib/types";
 
@@ -58,7 +59,12 @@ export default function Home() {
         const result = chess.move(options);
         if (!result) return;
         const fenAfter = chess.fen();
-        recordMove(result, fenBefore, fenAfter);
+
+        const moveUci =
+          result.from + result.to + (result.promotion ?? "");
+        const sacrifice = isSacrifice(fenBefore, moveUci);
+
+        recordMove(result, fenBefore, fenAfter, sacrifice);
         setFen(fenAfter);
       } catch {
         // Illegal move — ignore.
