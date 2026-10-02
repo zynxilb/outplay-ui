@@ -115,12 +115,15 @@ export function useMoveHistory({
           if (relForks.length > 0) {
             motifs.push("fork");
             for (const fk of relForks) {
+              // Only draw arrows to meaningful targets (queen, rook, king).
               for (const t of fk.targets) {
-                motifArrows.push({
-                  from: fk.from,
-                  to: t.square,
-                  color: "#E58F2A",
-                });
+                if (t.value >= 5 || t.piece === "k") {
+                  motifArrows.push({
+                    from: fk.from,
+                    to: t.square,
+                    color: "#E58F2A",
+                  });
+                }
               }
             }
           }

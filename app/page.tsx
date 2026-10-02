@@ -80,6 +80,7 @@ export default function Home() {
     ? moves.find((m) => m.ply === selectedPly)
     : null;
   const motifArrows = selectedMove?.motifArrows ?? [];
+  const activeBestMove = selectedPly ? null : bestMove;
 
   return (
     <main
@@ -106,7 +107,7 @@ export default function Home() {
         <Board
           game={game}
           onMove={handleMove}
-          bestMove={bestMove}
+          bestMove={activeBestMove}
           motifArrows={motifArrows}
         />
 
