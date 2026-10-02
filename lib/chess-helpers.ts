@@ -149,13 +149,21 @@ export function classifyMove({
     return "Brilliant";
   }
 
-  // Great: best move + clearly the only good option.
+  // Great: best move + the only good option that keeps the game's outcome.
+  // Requires: the 2nd-best move drops EP across a category boundary
+  // (winning >= 0.7 -> not winning, or equal-ish -> losing <= 0.3).
   if (isBest && secondBestEval !== null) {
     const moverSecond =
       moverColor === "w" ? secondBestEval : -secondBestEval;
     const epSecond = expectedPoints(moverSecond);
     const gap = epBefore - epSecond;
-    if (gap >= 0.15) return "Great";
+
+    const crossesWinBoundary = epBefore >= 0.7 && epSecond < 0.7;
+    const crossesLossBoundary = epBefore >= 0.3 && epSecond < 0.3;
+
+    if (gap >= 0.10 && (crossesWinBoundary || crossesLossBoundary)) {
+      return "Great";
+    }
   }
 
   if (isBest) return "Best";
