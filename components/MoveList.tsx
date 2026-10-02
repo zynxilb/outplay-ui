@@ -83,6 +83,21 @@ export function MoveList({ moves }: MoveListProps) {
             >
               {move.san}
             </span>
+            {move.motifs && move.motifs.length > 0 && (
+              <span
+                style={{
+                  color: "#1BACA6",
+                  fontSize: "11px",
+                  fontWeight: 700,
+                  padding: "2px 6px",
+                  border: "1px solid #1BACA6",
+                  borderRadius: "3px",
+                  marginRight: "6px",
+                }}
+              >
+                {move.motifs.includes("fork") ? "شوكة" : move.motifs[0]}
+              </span>
+            )}
             <span
               aria-label={style.label}
               style={{

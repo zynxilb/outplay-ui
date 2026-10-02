@@ -44,4 +44,5 @@ export type ClassifiedMove = {
   classification: MoveClassification;
   evalBefore: number;
   evalAfter: number;
+  motifs: string[];
 };

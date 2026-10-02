@@ -8,6 +8,8 @@ import {
   classifyMove,
   expectedPoints,
 } from "@/lib/chess-helpers";
+import { detectForks } from "@/lib/motifs";
+import { Chess } from "chess.js";
 import type { EvalResult } from "@/lib/chess-helpers";
 import type { ClassifiedMove, OpeningBook } from "@/lib/types";
 
@@ -75,6 +77,18 @@ export function useMoveHistory({
     const bookKey = normaliseFenForOpening(pending.fenAfter);
     const isBook = openingBook ? bookKey in openingBook : false;
 
+    // Detect motifs after the move (on the resulting position).
+    let motifs: string[] = [];
+    try {
+      const after = new Chess(pending.fenAfter);
+      const forks = detectForks(after, pending.move.color);
+      // Only count forks that involve the piece that just moved.
+      const relevant = forks.filter((f) => f.from === pending.move.to);
+      if (relevant.length > 0) motifs = ["fork"];
+    } catch {
+      motifs = [];
+    }
+
     setMoves((prev) => {
       let prevOppEpLoss = 1;
       if (prev.length > 0) {
@@ -109,6 +123,7 @@ export function useMoveHistory({
           }),
           evalBefore: evalBefore.score,
           evalAfter: evalAfter.score,
+          motifs,
         },
       ];
     });
