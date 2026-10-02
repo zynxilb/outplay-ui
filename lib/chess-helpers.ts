@@ -1,27 +1,25 @@
 // lib/chess-helpers.ts
-// Pure helper functions used across the app.
+// Re-exports the pure classification logic. Legacy logic lives in
+// tests/legacy-classify.ts and is NOT used by the app.
 
 import type { EvalResponse } from "./types";
+import { Chess } from "chess.js";
+import {
+  classifyMove,
+  expectedPoints,
+  winPercent,
+} from "./classify";
+import type { ClassifyInput, MoveClassification } from "./classify";
+
+export { classifyMove, expectedPoints, winPercent };
+export type { ClassifyInput, MoveClassification };
 
 /** The shape returned by fetchEvalFromServer. */
 export type EvalResult = {
   score: number;
   bestMove: string | null;
-  /** Score of the second-best move, if the engine returned multiple lines. */
   secondScore: number | null;
 };
-
-export type MoveClassification =
-  | "Brilliant"
-  | "Great"
-  | "Best"
-  | "Excellent"
-  | "Good"
-  | "Book"
-  | "Inaccuracy"
-  | "Mistake"
-  | "Miss"
-  | "Blunder";
 
 const NEUTRAL: EvalResult = { score: 0, bestMove: null, secondScore: null };
 
@@ -71,130 +69,17 @@ export async function fetchEvalFromServer(
   }
 }
 
-/**
- * Convert a centipawn evaluation to a win probability (0–100), from White's
- * perspective. This is the Lichess S-curve.
- */
-export function winPercent(cp: number): number {
-  return 50 + 50 * (2 / (1 + Math.exp(-0.00368208 * cp)) - 1);
-}
-
-/**
- * Expected Points: the Lichess win-probability normalised to 0–1.
- * This is what Chess.com calls "Expected Points" internally.
- */
-export function expectedPoints(cp: number): number {
-  return winPercent(cp) / 100;
-}
-
-type ClassifyInput = {
-  isBest: boolean;
-  isBook: boolean;
-  isSacrifice: boolean;
-  evalBefore: number;
-  evalAfter: number;
-  secondBestEval: number | null;
-  moverColor: "w" | "b";
-  /** EP loss of the opponent's previous move (0-1). Used for Miss. */
-  prevOppEpLoss?: number;
-};
-
-/**
- * Classify a move using Expected Points — the same approach as Chess.com's
- * ClassificationV2 and Lichess's accuracy engine.
- *
- * Order of precedence:
- *   1. Book       — the move is in the opening book
- *   2. Brilliant  — best move + a sacrifice that pays off
- *   3. Great      — best move + the only good option (large gap to 2nd best)
- *   4. Miss       — was winning, gave it away
- *   5. Best       — matches the engine's top choice
- *   6. Excellent  — expected-points loss ≤ 0.02
- *   7. Good       — ≤ 0.05
- *   8. Inaccuracy — ≤ 0.10
- *   9. Mistake    — ≤ 0.20
- *  10. Blunder    — > 0.20
- */
-export function classifyMove({
-  isBest,
-  isBook,
-  isSacrifice: sacrifice,
-  evalBefore,
-  evalAfter,
-  secondBestEval,
-  moverColor,
-  prevOppEpLoss = 1,
-}: ClassifyInput): MoveClassification {
-  if (isBook) return "Book";
-
-  const moverBefore = moverColor === "w" ? evalBefore : -evalBefore;
-  const moverAfter = moverColor === "w" ? evalAfter : -evalAfter;
-
-  const epBefore = expectedPoints(moverBefore);
-  const epAfter = expectedPoints(moverAfter);
-  const epLoss = Math.max(0, epBefore - epAfter);
-
-  // Miss: was winning, gave it away, AND opponent blundered previously.
-  if (
-    epBefore >= 0.7 &&
-    epAfter <= 0.55 &&
-    epLoss >= 0.15 &&
-    prevOppEpLoss >= 0.1
-  ) {
-    return "Miss";
-  }
-
-  // Brilliant: best (or near-best) move + sacrifice + still reasonable.
-  // Chess.com accepts "best or near-best" — we allow epLoss <= 0.02.
-  const isNearBest = isBest || epLoss <= 0.02;
-  if (isNearBest && sacrifice && epAfter >= 0.5 && epBefore < 0.9) {
-    return "Brilliant";
-  }
-
-  // Great: best move + the only good option that keeps the game's outcome.
-  // Requires: the 2nd-best move drops EP across a category boundary
-  // (winning >= 0.7 -> not winning, or equal-ish -> losing <= 0.3).
-  if (isBest && secondBestEval !== null) {
-    const moverSecond =
-      moverColor === "w" ? secondBestEval : -secondBestEval;
-    const epSecond = expectedPoints(moverSecond);
-    const gap = epBefore - epSecond;
-
-    const crossesWinBoundary = epBefore >= 0.7 && epSecond < 0.7;
-    const crossesLossBoundary = epBefore >= 0.3 && epSecond < 0.3;
-
-    if (gap >= 0.10 && (crossesWinBoundary || crossesLossBoundary)) {
-      return "Great";
-    }
-  }
-
-  if (isBest) return "Best";
-  if (epLoss <= 0.02) return "Excellent";
-  if (epLoss <= 0.05) return "Good";
-  if (epLoss <= 0.1) return "Inaccuracy";
-  if (epLoss <= 0.2) return "Mistake";
-  return "Blunder";
-}
-
-/**
- * Estimate a game rating from accuracy, using an approximation of the
- * relationship Chess.com uses for its "Game Rating" feature.
- *
- * Formula: 3100 * (accuracy/100)^2 - 500
- *   accuracy 50% → 275
- *   accuracy 70% → 1019
- *   accuracy 85% → 1740
- *   accuracy 95% → 2298
- */
 export function estimateGameRating(accuracy: number): number {
   if (accuracy <= 0) return 0;
   const rating = 3100 * Math.pow(accuracy / 100, 2) - 500;
   return Math.max(0, Math.round(rating));
 }
 
-/** Convert algebraic square (e.g. "e4") to a gigaboard SquareIndex (0-63). */
 export function algebraicToSquareIndex(square: string): number {
   const file = square.charCodeAt(0) - 97;
   const rank = parseInt(square[1], 10) - 1;
   return rank * 8 + file;
 }
+
+// silence unused-import warning; Chess is re-exported for callers.
+export { Chess };
