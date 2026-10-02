@@ -3,7 +3,11 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { Move } from "chess.js";
-import { normaliseFenForOpening, classifyMove } from "@/lib/chess-helpers";
+import {
+  normaliseFenForOpening,
+  classifyMove,
+  expectedPoints,
+} from "@/lib/chess-helpers";
 import type { EvalResult } from "@/lib/chess-helpers";
 import type { ClassifiedMove, OpeningBook } from "@/lib/types";
 
@@ -71,27 +75,43 @@ export function useMoveHistory({
     const bookKey = normaliseFenForOpening(pending.fenAfter);
     const isBook = openingBook ? bookKey in openingBook : false;
 
-    setMoves((prev) => [
-      ...prev,
-      {
-        ply: prev.length + 1,
-        san: pending.move.san,
-        from: pending.move.from,
-        to: pending.move.to,
-        color: pending.move.color,
-        classification: classifyMove({
-          isBest,
-          isBook,
-          isSacrifice: pending.isSacrifice,
+    setMoves((prev) => {
+      let prevOppEpLoss = 1;
+      if (prev.length > 0) {
+        const last = prev[prev.length - 1];
+        const lastBefore =
+          last.color === "w" ? last.evalBefore : -last.evalBefore;
+        const lastAfter =
+          last.color === "w" ? last.evalAfter : -last.evalAfter;
+        prevOppEpLoss = Math.max(
+          0,
+          expectedPoints(lastBefore) - expectedPoints(lastAfter)
+        );
+      }
+
+      return [
+        ...prev,
+        {
+          ply: prev.length + 1,
+          san: pending.move.san,
+          from: pending.move.from,
+          to: pending.move.to,
+          color: pending.move.color,
+          classification: classifyMove({
+            isBest,
+            isBook,
+            isSacrifice: pending.isSacrifice,
+            evalBefore: evalBefore.score,
+            evalAfter: evalAfter.score,
+            secondBestEval: evalBefore.secondScore,
+            moverColor: pending.move.color,
+            prevOppEpLoss,
+          }),
           evalBefore: evalBefore.score,
           evalAfter: evalAfter.score,
-          secondBestEval: evalBefore.secondScore,
-          moverColor: pending.move.color,
-        }),
-        evalBefore: evalBefore.score,
-        evalAfter: evalAfter.score,
-      },
-    ]);
+        },
+      ];
+    });
     pendingRef.current = null;
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [fen, evaluatedFen, engineReady, cacheVersion]);

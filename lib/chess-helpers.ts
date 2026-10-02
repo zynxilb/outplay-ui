@@ -95,6 +95,8 @@ type ClassifyInput = {
   evalAfter: number;
   secondBestEval: number | null;
   moverColor: "w" | "b";
+  /** EP loss of the opponent's previous move (0-1). Used for Miss. */
+  prevOppEpLoss?: number;
 };
 
 /**
@@ -121,6 +123,7 @@ export function classifyMove({
   evalAfter,
   secondBestEval,
   moverColor,
+  prevOppEpLoss = 1,
 }: ClassifyInput): MoveClassification {
   if (isBook) return "Book";
 
@@ -131,8 +134,13 @@ export function classifyMove({
   const epAfter = expectedPoints(moverAfter);
   const epLoss = Math.max(0, epBefore - epAfter);
 
-  // Miss: was winning, gave it away.
-  if (epBefore >= 0.7 && epAfter <= 0.55 && epLoss >= 0.15) {
+  // Miss: was winning, gave it away, AND opponent blundered previously.
+  if (
+    epBefore >= 0.7 &&
+    epAfter <= 0.55 &&
+    epLoss >= 0.15 &&
+    prevOppEpLoss >= 0.1
+  ) {
     return "Miss";
   }
 
