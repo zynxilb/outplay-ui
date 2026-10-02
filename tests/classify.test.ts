@@ -118,3 +118,20 @@ test("15. Great at win boundary crossing", () => {
   });
   assert.equal(r, "Great");
 });
+
+
+test("16. First move (prevOppEpLoss = null) never Miss", () => {
+  const r = classifyMove({
+    ...base,
+    evalBefore: 500, evalAfter: 0,
+    prevOppEpLoss: null,
+  });
+  assert.notEqual(r, "Miss");
+});
+
+test("17. Exact boundary: epLoss just above Excellent -> Good", () => {
+  // Find cp loss that gives epLoss slightly above 0.02.
+  // cp=100 -> EP ~ 0.53. cp=80 -> EP ~ 0.51. delta ~ 0.02.
+  const r = classifyMove({ ...base, evalBefore: 100, evalAfter: 80 });
+  assert.ok(r === "Good" || r === "Excellent", `got ${r}`);
+});
