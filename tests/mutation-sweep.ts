@@ -21,6 +21,12 @@ const mutations: Mut[] = [
   { label: "Good 500 -> 600", find: "GOOD_MAX = 500", replace: "GOOD_MAX = 600" },
   { label: "Inaccuracy 1000 -> 1100", find: "INACCURACY_MAX = 1000", replace: "INACCURACY_MAX = 1100" },
   { label: "Mistake 2000 -> 2100", find: "MISTAKE_MAX = 2000", replace: "MISTAKE_MAX = 2100" },
+  { label: "NEAR_BEST_MAX 200 -> 300", find: "NEAR_BEST_MAX = 200", replace: "NEAR_BEST_MAX = 300" },
+  { label: "NEAR_BEST_MAX <= -> <", find: "epLoss <= NEAR_BEST_MAX", replace: "epLoss < NEAR_BEST_MAX" },
+  { label: "EXCELLENT_MAX <= -> <", find: "epLoss <= EXCELLENT_MAX", replace: "epLoss < EXCELLENT_MAX" },
+  { label: "GOOD_MAX <= -> <", find: "epLoss <= GOOD_MAX", replace: "epLoss < GOOD_MAX" },
+  { label: "INACCURACY_MAX <= -> <", find: "epLoss <= INACCURACY_MAX", replace: "epLoss < INACCURACY_MAX" },
+  { label: "MISTAKE_MAX <= -> <", find: "epLoss <= MISTAKE_MAX", replace: "epLoss < MISTAKE_MAX" },
 ];
 
 const TEST_FILES = [
@@ -29,6 +35,7 @@ const TEST_FILES = [
   "tests/boundary.test.ts",
   "tests/wiring.test.ts",
   "tests/mutation-killers.test.ts",
+  "tests/boundary-exact.test.ts",
 ];
 
 function runTests(): { pass: number; fail: number } {
