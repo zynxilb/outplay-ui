@@ -95,7 +95,14 @@ export function MoveList({ moves }: MoveListProps) {
                   marginRight: "6px",
                 }}
               >
-                {move.motifs.includes("fork") ? "شوكة" : move.motifs[0]}
+                {move.motifs
+                  .map((m) => {
+                    if (m === "fork") return "شوكة";
+                    if (m === "pin") return "تثبيت";
+                    if (m === "skewer") return "خازوق";
+                    return m;
+                  })
+                  .join(" · ")}
               </span>
             )}
             <span

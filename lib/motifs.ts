@@ -78,3 +78,144 @@ export function detectForks(chess: Chess, attackerColor: "w" | "b"): Fork[] {
 
   return forks;
 }
+
+
+// ===== Pin & Skewer detection =====
+
+const SLIDING = ["b", "r", "q"];
+
+function walkToNextPiece(
+  chess: Chess,
+  start: Square,
+  df: number,
+  dr: number
+): { square: Square; piece: { type: string; color: "w" | "b" } } | null {
+  let f = start.charCodeAt(0) - 97 + df;
+  let r = parseInt(start[1], 10) - 1 + dr;
+  while (f >= 0 && f <= 7 && r >= 0 && r <= 7) {
+    const sq = (String.fromCharCode(97 + f) + (r + 1)) as Square;
+    const p = chess.get(sq);
+    if (p) return { square: sq, piece: p };
+    f += df;
+    r += dr;
+  }
+  return null;
+}
+
+function direction(from: Square, to: Square): [number, number] | null {
+  const df = to.charCodeAt(0) - from.charCodeAt(0);
+  const dr = parseInt(to[1], 10) - parseInt(from[1], 10);
+  if (df !== 0 && dr !== 0 && Math.abs(df) !== Math.abs(dr)) return null;
+  return [
+    df === 0 ? 0 : df > 0 ? 1 : -1,
+    dr === 0 ? 0 : dr > 0 ? 1 : -1,
+  ];
+}
+
+export type PinOrSkewer = {
+  from: Square;
+  piece: string;
+  front: Square;
+  frontPiece: string;
+  frontValue: number;
+  back: Square;
+  backPiece: string;
+  backValue: number;
+  isAbsolute: boolean;
+};
+
+export function detectPins(
+  chess: Chess,
+  attackerColor: "w" | "b"
+): PinOrSkewer[] {
+  const pins: PinOrSkewer[] = [];
+  const enemy = attackerColor === "w" ? "b" : "w";
+
+  for (const sq of ALL_SQUARES) {
+    const piece = chess.get(sq);
+    if (!piece || piece.color !== attackerColor) continue;
+    if (!SLIDING.includes(piece.type)) continue;
+
+    for (const tsq of attacksFrom(chess, sq)) {
+      const tp = chess.get(tsq);
+      if (!tp || tp.color !== enemy) continue;
+
+      const dir = direction(sq, tsq);
+      if (!dir) continue;
+
+      const behind = walkToNextPiece(chess, tsq, dir[0], dir[1]);
+      if (!behind || behind.piece.color !== enemy) continue;
+
+      const frontVal = PIECE_VALUES[tp.type] ?? 0;
+      const backVal = PIECE_VALUES[behind.piece.type] ?? 0;
+
+      // Pin: back piece is more valuable than front
+      if (backVal <= frontVal) continue;
+
+      const isAbsolute = behind.piece.type === "k";
+      // Skip pinned pawns (not meaningful) unless absolute
+      if (tp.type === "p" && !isAbsolute) continue;
+      // Skip if back piece is a pawn
+      if (behind.piece.type === "p") continue;
+
+      pins.push({
+        from: sq,
+        piece: piece.type,
+        front: tsq,
+        frontPiece: tp.type,
+        frontValue: frontVal,
+        back: behind.square,
+        backPiece: behind.piece.type,
+        backValue: backVal,
+        isAbsolute,
+      });
+    }
+  }
+  return pins;
+}
+
+export function detectSkewers(
+  chess: Chess,
+  attackerColor: "w" | "b"
+): PinOrSkewer[] {
+  const skewers: PinOrSkewer[] = [];
+  const enemy = attackerColor === "w" ? "b" : "w";
+
+  for (const sq of ALL_SQUARES) {
+    const piece = chess.get(sq);
+    if (!piece || piece.color !== attackerColor) continue;
+    if (!SLIDING.includes(piece.type)) continue;
+
+    for (const tsq of attacksFrom(chess, sq)) {
+      const tp = chess.get(tsq);
+      if (!tp || tp.color !== enemy) continue;
+
+      const dir = direction(sq, tsq);
+      if (!dir) continue;
+
+      const behind = walkToNextPiece(chess, tsq, dir[0], dir[1]);
+      if (!behind || behind.piece.color !== enemy) continue;
+
+      const frontVal = PIECE_VALUES[tp.type] ?? 0;
+      const backVal = PIECE_VALUES[behind.piece.type] ?? 0;
+
+      // Skewer: front piece is MORE valuable than back
+      if (frontVal <= backVal) continue;
+      // Back piece must be worth at least 3 (minor piece)
+      if (backVal < 3) continue;
+
+      skewers.push({
+        from: sq,
+        piece: piece.type,
+        front: tsq,
+        frontPiece: tp.type,
+        frontValue: frontVal,
+        back: behind.square,
+        backPiece: behind.piece.type,
+        backValue: backVal,
+        isAbsolute: tp.type === "k",
+      });
+    }
+  }
+  return skewers;
+}

@@ -9,7 +9,7 @@ import {
   classifyMove,
   expectedPoints,
 } from "@/lib/chess-helpers";
-import { detectForks } from "@/lib/motifs";
+import { detectForks, detectPins, detectSkewers } from "@/lib/motifs";
 import type { EvalResult } from "@/lib/chess-helpers";
 import type { ClassifiedMove, OpeningBook } from "@/lib/types";
 
@@ -102,9 +102,16 @@ export function useMoveHistory({
         let motifs: string[] = [];
         try {
           const after = new Chess(pending.fenAfter);
+          const lastTo = pending.move.to;
+
           const forks = detectForks(after, pending.move.color);
-          const relevant = forks.filter((f) => f.from === pending.move.to);
-          if (relevant.length > 0) motifs = ["fork"];
+          if (forks.some((f) => f.from === lastTo)) motifs.push("fork");
+
+          const pins = detectPins(after, pending.move.color);
+          if (pins.some((p) => p.from === lastTo)) motifs.push("pin");
+
+          const skewers = detectSkewers(after, pending.move.color);
+          if (skewers.some((s) => s.from === lastTo)) motifs.push("skewer");
         } catch {
           motifs = [];
         }
