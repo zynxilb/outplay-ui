@@ -16,7 +16,7 @@ import {
   detectDiscovered,
 } from "@/lib/motifs";
 import type { EvalResult } from "@/lib/chess-helpers";
-import type { ClassifiedMove, OpeningBook } from "@/lib/types";
+import type { ClassifiedMove, OpeningBook, MotifArrow } from "@/lib/types";
 
 type PendingMove = {
   move: Move;
@@ -104,19 +104,50 @@ export function useMoveHistory({
         const bookKey = normaliseFenForOpening(pending.fenAfter);
         const isBook = openingBook ? bookKey in openingBook : false;
 
-        let motifs: string[] = [];
+        const motifs: string[] = [];
+        const motifArrows: MotifArrow[] = [];
         try {
           const after = new Chess(pending.fenAfter);
           const lastTo = pending.move.to;
 
           const forks = detectForks(after, pending.move.color);
-          if (forks.some((f) => f.from === lastTo)) motifs.push("fork");
+          const relForks = forks.filter((f) => f.from === lastTo);
+          if (relForks.length > 0) {
+            motifs.push("fork");
+            for (const fk of relForks) {
+              for (const t of fk.targets) {
+                motifArrows.push({
+                  from: fk.from,
+                  to: t.square,
+                  color: "#E58F2A",
+                });
+              }
+            }
+          }
 
           const pins = detectPins(after, pending.move.color);
-          if (pins.some((p) => p.from === lastTo)) motifs.push("pin");
+          const relPins = pins.filter((p) => p.from === lastTo);
+          if (relPins.length > 0) {
+            motifs.push("pin");
+            for (const pn of relPins) {
+              motifArrows.push(
+                { from: pn.from, to: pn.front, color: "#F7C045" },
+                { from: pn.front, to: pn.back, color: "#F7C045" }
+              );
+            }
+          }
 
           const skewers = detectSkewers(after, pending.move.color);
-          if (skewers.some((s) => s.from === lastTo)) motifs.push("skewer");
+          const relSkewers = skewers.filter((s) => s.from === lastTo);
+          if (relSkewers.length > 0) {
+            motifs.push("skewer");
+            for (const sk of relSkewers) {
+              motifArrows.push(
+                { from: sk.from, to: sk.front, color: "#CA3431" },
+                { from: sk.front, to: sk.back, color: "#CA3431" }
+              );
+            }
+          }
 
           const discovered = detectDiscovered(
             pending.fenBefore,
@@ -124,9 +155,18 @@ export function useMoveHistory({
             pending.move.to,
             pending.move.color
           );
-          if (discovered.length > 0) motifs.push("discovered");
+          if (discovered.length > 0) {
+            motifs.push("discovered");
+            for (const d of discovered) {
+              motifArrows.push({
+                from: d.revealedPiece,
+                to: d.target,
+                color: "#5C8BB0",
+              });
+            }
+          }
         } catch {
-          motifs = [];
+          // ignore
         }
 
         lastPly += 1;
@@ -149,6 +189,7 @@ export function useMoveHistory({
           evalBefore: eb.score,
           evalAfter: ea.score,
           motifs,
+          motifArrows,
         });
 
         const mb = pending.move.color === "w" ? eb.score : -eb.score;

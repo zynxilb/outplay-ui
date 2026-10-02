@@ -6,6 +6,8 @@ import type { MoveClassification } from "@/lib/chess-helpers";
 
 type MoveListProps = {
   moves: ClassifiedMove[];
+  selectedPly?: number | null;
+  onSelect?: (ply: number) => void;
 };
 
 const STYLES: Record<
@@ -24,7 +26,7 @@ const STYLES: Record<
   Blunder: { symbol: "??", color: "#B33430", label: "كارثة" },
 };
 
-export function MoveList({ moves }: MoveListProps) {
+export function MoveList({ moves, selectedPly, onSelect }: MoveListProps) {
   if (moves.length === 0) {
     return (
       <div
@@ -64,11 +66,15 @@ export function MoveList({ moves }: MoveListProps) {
         return (
           <div
             key={move.ply}
+            onClick={() => onSelect?.(move.ply)}
             style={{
               display: "flex",
               alignItems: "center",
               padding: "6px 12px",
               borderBottom: "1px solid #3C3A38",
+              cursor: onSelect ? "pointer" : "default",
+              background:
+                selectedPly === move.ply ? "#3C3A38" : "transparent",
             }}
           >
             <span style={{ color: "#7d7a76", width: "32px" }}>

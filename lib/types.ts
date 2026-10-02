@@ -35,6 +35,12 @@ export type MoveOptions = {
 export const PROMOTION_PIECES = ["", "n", "b", "r", "q"] as const;
 
 /** A single played move with its classification and evals. */
+export type MotifArrow = {
+  from: string;
+  to: string;
+  color: string;
+};
+
 export type ClassifiedMove = {
   ply: number;
   san: string;
@@ -45,4 +51,5 @@ export type ClassifiedMove = {
   evalBefore: number;
   evalAfter: number;
   motifs: string[];
+  motifArrows?: MotifArrow[];
 };

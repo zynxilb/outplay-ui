@@ -36,6 +36,8 @@ export default function Home() {
     getEvalForFen,
   } = useStockfishEval(fen);
 
+  const [selectedPly, setSelectedPly] = useState<number | null>(null);
+
   const { moves, recordMove } = useMoveHistory({
     fen,
     evaluatedFen,
@@ -74,6 +76,11 @@ export default function Home() {
     [chess, recordMove]
   );
 
+  const selectedMove = selectedPly
+    ? moves.find((m) => m.ply === selectedPly)
+    : null;
+  const motifArrows = selectedMove?.motifArrows ?? [];
+
   return (
     <main
       style={{
@@ -96,7 +103,12 @@ export default function Home() {
 
       <div style={{ display: "flex", gap: "16px", flexWrap: "wrap" }}>
         <EvalBar evalCp={evalCp} height={500} />
-        <Board game={game} onMove={handleMove} bestMove={bestMove} />
+        <Board
+          game={game}
+          onMove={handleMove}
+          bestMove={bestMove}
+          motifArrows={motifArrows}
+        />
 
         <div
           style={{
@@ -107,7 +119,11 @@ export default function Home() {
         >
           <OpeningCard opening={opening} bookLoading={book === null} />
           <StatsCard moves={moves} />
-          <MoveList moves={moves} />
+          <MoveList
+          moves={moves}
+          selectedPly={selectedPly}
+          onSelect={setSelectedPly}
+        />
         </div>
       </div>
     </main>
