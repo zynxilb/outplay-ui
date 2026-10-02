@@ -23,6 +23,7 @@ type PendingMove = {
   fenBefore: string;
   fenAfter: string;
   isSacrifice: boolean;
+  legalMoves: number;
 };
 
 type UseMoveHistoryOptions = {
@@ -52,7 +53,18 @@ export function useMoveHistory({
       fenAfter: string,
       isSacrifice: boolean
     ) => {
-      pendingQueueRef.current.push({ move, fenBefore, fenAfter, isSacrifice });
+      // Count legal moves from the position BEFORE the move.
+      // Must happen here, not at process time — the live `chess` object
+      // may have advanced due to rapid play.
+      let legalMoves = 0;
+      try {
+        legalMoves = new Chess(fenBefore).moves().length;
+      } catch {
+        legalMoves = 30; // safe default
+      }
+      pendingQueueRef.current.push({
+        move, fenBefore, fenAfter, isSacrifice, legalMoves,
+      });
     },
     []
   );
@@ -188,6 +200,7 @@ export function useMoveHistory({
             secondBestEval: eb.secondScore,
             moverColor: pending.move.color,
             prevOppEpLoss,
+            legalMoves: pending.legalMoves,
           }),
           evalBefore: eb.score,
           evalAfter: ea.score,
