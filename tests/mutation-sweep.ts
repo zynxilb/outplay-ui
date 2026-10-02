@@ -7,27 +7,20 @@ const ORIGINAL = fs.readFileSync("lib/classify.ts", "utf8");
 type Mut = { label: string; find: string; replace: string };
 
 const mutations: Mut[] = [
-  // Miss thresholds
-  { label: "Miss bigLoss 0.15 -> 0.25", find: "bigLoss = epLoss >= 0.15", replace: "bigLoss = epLoss >= 0.25" },
-  { label: "Miss gaveItAway 0.55 -> 0.65", find: "epAfter <= 0.55", replace: "epAfter <= 0.65" },
-  { label: "Miss wasWinning 0.7 -> 0.8", find: "epBefore >= 0.7", replace: "epBefore >= 0.8" },
-  { label: "Miss prevOpp 0.1 -> 0.2", find: "opponentBlundered = prevOppEpLoss !== null && prevOppEpLoss >= 0.1", replace: "opponentBlundered = prevOppEpLoss !== null && prevOppEpLoss >= 0.2" },
-  { label: "Miss stillNotLosing 0.3 -> 0.4", find: "stillNotLosing = epAfter >= 0.3", replace: "stillNotLosing = epAfter >= 0.4" },
-
-  // Brilliant
-  { label: "Brilliant epAfter 0.5 -> 0.6", find: "epAfter >= 0.5", replace: "epAfter >= 0.6" },
-  { label: "Brilliant epBefore 0.9 -> 0.8", find: "epBefore < 0.9", replace: "epBefore < 0.8" },
-
-  // Great
-  { label: "Great gap 0.1 -> 0.15", find: "if (gap >= 0.1", replace: "if (gap >= 0.15" },
-  { label: "Great crossesWin 0.7 -> 0.75", find: "epBefore >= 0.7 && epSecond < 0.7", replace: "epBefore >= 0.75 && epSecond < 0.75" },
-  { label: "Great crossesLoss 0.3 -> 0.35", find: "epBefore >= 0.3 && epSecond < 0.3", replace: "epBefore >= 0.35 && epSecond < 0.35" },
-
-  // Classification thresholds
-  { label: "Excellent 0.02 -> 0.03", find: 'if (epLoss <= 0.02) return "Excellent";', replace: 'if (epLoss <= 0.03) return "Excellent";' },
-  { label: "Good 0.05 -> 0.06", find: 'if (epLoss <= 0.05) return "Good";', replace: 'if (epLoss <= 0.06) return "Good";' },
-  { label: "Inaccuracy 0.1 -> 0.11", find: 'if (epLoss <= 0.1) return "Inaccuracy";', replace: 'if (epLoss <= 0.11) return "Inaccuracy";' },
-  { label: "Mistake 0.2 -> 0.21", find: 'if (epLoss <= 0.2) return "Mistake";', replace: 'if (epLoss <= 0.21) return "Mistake";' },
+  { label: "Miss bigLoss 1500 -> 2500", find: "MISS_BIG_LOSS = 1500", replace: "MISS_BIG_LOSS = 2500" },
+  { label: "Miss gaveItAway 5500 -> 6500", find: "MISS_GAVE_IT_AWAY = 5500", replace: "MISS_GAVE_IT_AWAY = 6500" },
+  { label: "Miss wasWinning 7000 -> 8000", find: "MISS_WAS_WINNING = 7000", replace: "MISS_WAS_WINNING = 8000" },
+  { label: "Miss prevOpp 1000 -> 2000", find: "MISS_PREV_OPP_BLUNDER = 1000", replace: "MISS_PREV_OPP_BLUNDER = 2000" },
+  { label: "Miss stillNotLosing 3000 -> 4000", find: "MISS_STILL_NOT_LOSING = 3000", replace: "MISS_STILL_NOT_LOSING = 4000" },
+  { label: "Brilliant epAfter 5000 -> 6000", find: "BRILLIANT_EP_AFTER_MIN = 5000", replace: "BRILLIANT_EP_AFTER_MIN = 6000" },
+  { label: "Brilliant epBefore 9000 -> 8000", find: "BRILLIANT_EP_BEFORE_MAX = 9000", replace: "BRILLIANT_EP_BEFORE_MAX = 8000" },
+  { label: "Great gap 1000 -> 1500", find: "GREAT_GAP_MIN = 1000", replace: "GREAT_GAP_MIN = 1500" },
+  { label: "Great crossesWin 7000 -> 7500", find: "GREAT_CROSSES_WIN = 7000", replace: "GREAT_CROSSES_WIN = 7500" },
+  { label: "Great crossesLoss 3000 -> 3500", find: "GREAT_CROSSES_LOSS = 3000", replace: "GREAT_CROSSES_LOSS = 3500" },
+  { label: "Excellent 200 -> 300", find: "EXCELLENT_MAX = 200", replace: "EXCELLENT_MAX = 300" },
+  { label: "Good 500 -> 600", find: "GOOD_MAX = 500", replace: "GOOD_MAX = 600" },
+  { label: "Inaccuracy 1000 -> 1100", find: "INACCURACY_MAX = 1000", replace: "INACCURACY_MAX = 1100" },
+  { label: "Mistake 2000 -> 2100", find: "MISTAKE_MAX = 2000", replace: "MISTAKE_MAX = 2100" },
 ];
 
 const TEST_FILES = [
@@ -55,14 +48,12 @@ function runTests(): { pass: number; fail: number } {
   }
 }
 
-// Baseline
 const baseline = runTests();
 console.log(`Baseline: pass=${baseline.pass} fail=${baseline.fail}\n`);
 
 const results: { label: string; applied: boolean; pass: number; fail: number }[] = [];
 
 for (const m of mutations) {
-  // reset to original
   fs.writeFileSync("lib/classify.ts", ORIGINAL);
   const applied = ORIGINAL.includes(m.find);
   if (!applied) {
@@ -76,7 +67,6 @@ for (const m of mutations) {
   console.log(`  ${m.label}: pass=${r.pass} fail=${r.fail}`);
 }
 
-// restore
 fs.writeFileSync("lib/classify.ts", ORIGINAL);
 console.log("\nRestored classify.ts");
 
