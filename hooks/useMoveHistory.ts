@@ -3,13 +3,13 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { Move } from "chess.js";
+import { Chess } from "chess.js";
 import {
   normaliseFenForOpening,
   classifyMove,
   expectedPoints,
 } from "@/lib/chess-helpers";
 import { detectForks } from "@/lib/motifs";
-import { Chess } from "chess.js";
 import type { EvalResult } from "@/lib/chess-helpers";
 import type { ClassifiedMove, OpeningBook } from "@/lib/types";
 
@@ -38,7 +38,7 @@ export function useMoveHistory({
   getEvalForFen,
 }: UseMoveHistoryOptions) {
   const [moves, setMoves] = useState<ClassifiedMove[]>([]);
-  const pendingRef = useRef<PendingMove | null>(null);
+  const pendingQueueRef = useRef<PendingMove[]>([]);
 
   const recordMove = useCallback(
     (
@@ -47,66 +47,71 @@ export function useMoveHistory({
       fenAfter: string,
       isSacrifice: boolean
     ) => {
-      pendingRef.current = { move, fenBefore, fenAfter, isSacrifice };
+      pendingQueueRef.current.push({ move, fenBefore, fenAfter, isSacrifice });
     },
     []
   );
 
   const reset = useCallback(() => {
     setMoves([]);
-    pendingRef.current = null;
+    pendingQueueRef.current = [];
   }, []);
 
   useEffect(() => {
     if (!engineReady) return;
-    const pending = pendingRef.current;
-    if (!pending) return;
-    if (pending.fenAfter !== fen) return;
-    if (evaluatedFen !== fen) return;
+    const queue = pendingQueueRef.current;
+    if (queue.length === 0) return;
 
-    const evalBefore = getEvalForFen(pending.fenBefore);
-    const evalAfter = getEvalForFen(pending.fenAfter);
-    if (!evalBefore || !evalAfter) return;
-
-    const playedUci =
-      pending.move.from +
-      pending.move.to +
-      (pending.move.promotion ?? "");
-    const isBest = evalBefore.bestMove === playedUci;
-
-    const bookKey = normaliseFenForOpening(pending.fenAfter);
-    const isBook = openingBook ? bookKey in openingBook : false;
-
-    // Detect motifs after the move (on the resulting position).
-    let motifs: string[] = [];
-    try {
-      const after = new Chess(pending.fenAfter);
-      const forks = detectForks(after, pending.move.color);
-      // Only count forks that involve the piece that just moved.
-      const relevant = forks.filter((f) => f.from === pending.move.to);
-      if (relevant.length > 0) motifs = ["fork"];
-    } catch {
-      motifs = [];
+    // Process pending moves in order. Stop at the first whose evals aren't ready.
+    const toProcess: PendingMove[] = [];
+    for (const p of queue) {
+      const eb = getEvalForFen(p.fenBefore);
+      const ea = getEvalForFen(p.fenAfter);
+      if (!eb || !ea) break;
+      toProcess.push(p);
     }
+    if (toProcess.length === 0) return;
+
+    pendingQueueRef.current = queue.slice(toProcess.length);
 
     setMoves((prev) => {
+      const newMoves: ClassifiedMove[] = [];
       let prevOppEpLoss = 1;
+      let lastPly = prev.length;
+
       if (prev.length > 0) {
         const last = prev[prev.length - 1];
-        const lastBefore =
-          last.color === "w" ? last.evalBefore : -last.evalBefore;
-        const lastAfter =
-          last.color === "w" ? last.evalAfter : -last.evalAfter;
-        prevOppEpLoss = Math.max(
-          0,
-          expectedPoints(lastBefore) - expectedPoints(lastAfter)
-        );
+        const lb = last.color === "w" ? last.evalBefore : -last.evalBefore;
+        const la = last.color === "w" ? last.evalAfter : -last.evalAfter;
+        prevOppEpLoss = Math.max(0, expectedPoints(lb) - expectedPoints(la));
       }
 
-      return [
-        ...prev,
-        {
-          ply: prev.length + 1,
+      for (const pending of toProcess) {
+        const eb = getEvalForFen(pending.fenBefore);
+        const ea = getEvalForFen(pending.fenAfter);
+        if (!eb || !ea) break;
+
+        const playedUci =
+          pending.move.from +
+          pending.move.to +
+          (pending.move.promotion ?? "");
+        const isBest = eb.bestMove === playedUci;
+        const bookKey = normaliseFenForOpening(pending.fenAfter);
+        const isBook = openingBook ? bookKey in openingBook : false;
+
+        let motifs: string[] = [];
+        try {
+          const after = new Chess(pending.fenAfter);
+          const forks = detectForks(after, pending.move.color);
+          const relevant = forks.filter((f) => f.from === pending.move.to);
+          if (relevant.length > 0) motifs = ["fork"];
+        } catch {
+          motifs = [];
+        }
+
+        lastPly += 1;
+        newMoves.push({
+          ply: lastPly,
           san: pending.move.san,
           from: pending.move.from,
           to: pending.move.to,
@@ -115,19 +120,24 @@ export function useMoveHistory({
             isBest,
             isBook,
             isSacrifice: pending.isSacrifice,
-            evalBefore: evalBefore.score,
-            evalAfter: evalAfter.score,
-            secondBestEval: evalBefore.secondScore,
+            evalBefore: eb.score,
+            evalAfter: ea.score,
+            secondBestEval: eb.secondScore,
             moverColor: pending.move.color,
             prevOppEpLoss,
           }),
-          evalBefore: evalBefore.score,
-          evalAfter: evalAfter.score,
+          evalBefore: eb.score,
+          evalAfter: ea.score,
           motifs,
-        },
-      ];
+        });
+
+        const mb = pending.move.color === "w" ? eb.score : -eb.score;
+        const ma = pending.move.color === "w" ? ea.score : -ea.score;
+        prevOppEpLoss = Math.max(0, expectedPoints(mb) - expectedPoints(ma));
+      }
+
+      return [...prev, ...newMoves];
     });
-    pendingRef.current = null;
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [fen, evaluatedFen, engineReady, cacheVersion]);
 
