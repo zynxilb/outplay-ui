@@ -2,7 +2,8 @@
 // Detects tactical motifs. Ported from motifs.py.
 // Currently supports: Fork.
 
-import type { Chess, Square } from "chess.js";
+import type { Square } from "chess.js";
+import { Chess } from "chess.js";
 import { attacksFrom } from "./attacks";
 
 const PIECE_VALUES: Record<string, number> = {
@@ -218,4 +219,85 @@ export function detectSkewers(
     }
   }
   return skewers;
+}
+
+
+// ===== Discovered Attack detection =====
+
+function isBetween(a: Square, b: Square, c: Square): boolean {
+  const af = a.charCodeAt(0) - 97, ar = parseInt(a[1], 10) - 1;
+  const bf = b.charCodeAt(0) - 97, br = parseInt(b[1], 10) - 1;
+  const cf = c.charCodeAt(0) - 97, cr = parseInt(c[1], 10) - 1;
+
+  // Same rank
+  if (ar === br && br === cr) {
+    return Math.min(af, bf) < cf && cf < Math.max(af, bf);
+  }
+  // Same file
+  if (af === bf && bf === cf) {
+    return Math.min(ar, br) < cr && cr < Math.max(ar, br);
+  }
+  // Same diagonal (slope +1 or -1)
+  if (Math.abs(af - bf) === Math.abs(ar - br)) {
+    const diag1 = af - ar === bf - br && bf - br === cf - cr;
+    const diag2 = af + ar === bf + br && bf + br === cf + cr;
+    if (diag1 || diag2) {
+      return Math.min(af, bf) < cf && cf < Math.max(af, bf);
+    }
+  }
+  return false;
+}
+
+export type DiscoveredAttack = {
+  revealedPiece: Square;
+  revealedPieceType: string;
+  target: Square;
+  targetPiece: string;
+  movedFrom: Square;
+  movedTo: Square;
+};
+
+export function detectDiscovered(
+  fenBefore: string,
+  from: Square,
+  to: Square,
+  color: "w" | "b"
+): DiscoveredAttack[] {
+  const before = new Chess(fenBefore);
+  const after = new Chess(fenBefore);
+  try {
+    after.move({ from, to, promotion: undefined });
+  } catch {
+    return [];
+  }
+
+  const results: DiscoveredAttack[] = [];
+  const enemy = color === "w" ? "b" : "w";
+
+  for (const sq of ALL_SQUARES) {
+    if (sq === to) continue;
+    const piece = after.get(sq);
+    if (!piece || piece.color !== color) continue;
+    if (!SLIDING.includes(piece.type)) continue;
+
+    const beforeAtt = new Set(attacksFrom(before, sq));
+    const afterAtt = attacksFrom(after, sq);
+    const newTargets = afterAtt.filter((t) => !beforeAtt.has(t));
+
+    for (const tsq of newTargets) {
+      const tp = after.get(tsq);
+      if (!tp || tp.color !== enemy) continue;
+      if (isBetween(sq, tsq, from)) {
+        results.push({
+          revealedPiece: sq,
+          revealedPieceType: piece.type,
+          target: tsq,
+          targetPiece: tp.type,
+          movedFrom: from,
+          movedTo: to,
+        });
+      }
+    }
+  }
+  return results;
 }

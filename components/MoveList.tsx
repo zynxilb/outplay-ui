@@ -100,6 +100,7 @@ export function MoveList({ moves }: MoveListProps) {
                     if (m === "fork") return "شوكة";
                     if (m === "pin") return "تثبيت";
                     if (m === "skewer") return "خازوق";
+                    if (m === "discovered") return "هجوم مكشوف";
                     return m;
                   })
                   .join(" · ")}

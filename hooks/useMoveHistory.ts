@@ -9,7 +9,12 @@ import {
   classifyMove,
   expectedPoints,
 } from "@/lib/chess-helpers";
-import { detectForks, detectPins, detectSkewers } from "@/lib/motifs";
+import {
+  detectForks,
+  detectPins,
+  detectSkewers,
+  detectDiscovered,
+} from "@/lib/motifs";
 import type { EvalResult } from "@/lib/chess-helpers";
 import type { ClassifiedMove, OpeningBook } from "@/lib/types";
 
@@ -112,6 +117,14 @@ export function useMoveHistory({
 
           const skewers = detectSkewers(after, pending.move.color);
           if (skewers.some((s) => s.from === lastTo)) motifs.push("skewer");
+
+          const discovered = detectDiscovered(
+            pending.fenBefore,
+            pending.move.from,
+            pending.move.to,
+            pending.move.color
+          );
+          if (discovered.length > 0) motifs.push("discovered");
         } catch {
           motifs = [];
         }
