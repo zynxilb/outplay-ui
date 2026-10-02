@@ -144,8 +144,10 @@ export function classifyMove({
     return "Miss";
   }
 
-  // Brilliant: best move + sacrifice + still reasonable + not already crushing.
-  if (isBest && sacrifice && epAfter >= 0.5 && epBefore < 0.9) {
+  // Brilliant: best (or near-best) move + sacrifice + still reasonable.
+  // Chess.com accepts "best or near-best" — we allow epLoss <= 0.02.
+  const isNearBest = isBest || epLoss <= 0.02;
+  if (isNearBest && sacrifice && epAfter >= 0.5 && epBefore < 0.9) {
     return "Brilliant";
   }
 
