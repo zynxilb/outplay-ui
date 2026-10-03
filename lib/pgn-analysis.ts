@@ -222,3 +222,28 @@ export async function analyzePGN(
 
   return { headers, moves };
 }
+
+
+// ============ 6b.2b.1: retry + error helpers ============
+
+export class AnalysisError extends Error {
+  positionIndex: number;
+  fen: string;
+  constructor(_message: string, _positionIndex: number, _fen: string) {
+    super(_message);
+    throw new Error("AnalysisError not implemented");
+  }
+}
+
+export function isAbortError(_err: unknown): boolean {
+  throw new Error("isAbortError is not implemented");
+}
+
+export async function evalWithRetry(
+  _evaluator: Evaluator,
+  _fen: string,
+  _depth: number,
+  _signal?: AbortSignal
+): Promise<PositionEval> {
+  throw new Error("evalWithRetry is not implemented");
+}
