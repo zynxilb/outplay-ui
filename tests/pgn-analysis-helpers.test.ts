@@ -62,3 +62,28 @@ test("computeIsBest: en passant maps to e5f6", () => {
 test("computeIsBest: illegal SAN -> false (no throw)", () => {
   assert.equal(computeIsBest("Qh5", STARTING, "d2d4"), false);
 });
+
+
+test("computeIsBest: black castling kingside (e8g8)", () => {
+  const fen = "r3k2r/8/8/8/8/8/8/R3K2R b KQkq - 0 1";
+  assert.equal(computeIsBest("O-O", fen, "e8g8"), true);
+});
+
+test("computeIsBest: white castling queenside (e1c1)", () => {
+  const fen = "r3k2r/8/8/8/8/8/8/R3K2R w KQkq - 0 1";
+  assert.equal(computeIsBest("O-O-O", fen, "e1c1"), true);
+});
+
+test("computeIsBest: promotion to knight", () => {
+  const fen = "8/P7/8/8/8/8/8/K6k w - - 0 1";
+  assert.equal(computeIsBest("a8=N", fen, "a7a8n"), true);
+});
+
+test("computeIsBest: capture-promotion", () => {
+  const fen = "1r6/P7/8/8/8/8/8/K6k w - - 0 1";
+  assert.equal(computeIsBest("axb8=Q", fen, "a7b8q"), true);
+});
+
+test("computeIsBest: uppercase bestmove UCI still matches", () => {
+  assert.equal(computeIsBest("e4", STARTING, "E2E4"), true);
+});
