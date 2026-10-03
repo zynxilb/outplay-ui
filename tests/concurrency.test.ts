@@ -7,7 +7,6 @@ const sleep = (ms: number) => new Promise<void>(r => setTimeout(r, ms));
 
 test("mapWithConcurrency: preserves input order (first slowest)", async () => {
   const items = [0, 1, 2, 3, 4];
-  // First item slowest -> completion order reversed -> results still in order
   const delays = [50, 40, 30, 20, 10];
   const results = await mapWithConcurrency(items, 5, async (item) => {
     await sleep(delays[item]);
@@ -40,7 +39,6 @@ test("mapWithConcurrency: first error by time stops new tasks", async () => {
   const promise = mapWithConcurrency(items, 3, async (item) => {
     started.push(item);
     if (item === 1) {
-      await sleep(10);
       throw new Error("boom-1");
     }
     if (item === 2) {
@@ -54,9 +52,7 @@ test("mapWithConcurrency: first error by time stops new tasks", async () => {
 
   await assert.rejects(promise, /boom-1/);
 
-  // Item 2 was in-flight when 1 errored; must have finished.
   assert.equal(inflightSlowFinished, true);
-  // No new items (3 or 4) started after error.
   assert.deepEqual(started.sort(), [0, 1, 2]);
 });
 
@@ -87,7 +83,6 @@ test("mapWithConcurrency: abort mid-flight rejects with AbortError", async () =>
     ac.signal
   );
 
-  // Let first batch start, then abort.
   await sleep(5);
   ac.abort();
 
@@ -95,7 +90,6 @@ test("mapWithConcurrency: abort mid-flight rejects with AbortError", async () =>
     promise,
     (err: Error) => err.name === "AbortError"
   );
-  // Only the first in-flight batch started.
   assert.ok(started.length <= 2);
 });
 
@@ -106,4 +100,13 @@ test("mapWithConcurrency: invalid limit throws RangeError", async () => {
       (err: Error) => err.name === "RangeError"
     );
   }
+});
+
+test("mapWithConcurrency: fn rejecting with undefined still fails", async () => {
+  await assert.rejects(
+    mapWithConcurrency([1, 2, 3], 2, async (item) => {
+      if (item === 2) throw undefined;
+      return item;
+    })
+  );
 });
