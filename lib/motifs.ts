@@ -4,7 +4,7 @@
 
 import type { Square } from "chess.js";
 import { Chess } from "chess.js";
-import { attacksFrom } from "./attacks";
+import { attacksFrom } from "./attacks.ts";
 
 const PIECE_VALUES: Record<string, number> = {
   p: 1, n: 3, b: 3, r: 5, q: 9, k: 100,

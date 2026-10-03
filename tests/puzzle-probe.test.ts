@@ -9,6 +9,7 @@ import { Stockfish } from "@se-oss/stockfish";
 import { Chess } from "chess.js";
 import fs from "node:fs";
 import { classifyMove } from "../lib/classify.ts";
+import { sacrificeValue } from "../lib/see.ts";
 
 const DEPTH = 16;
 
@@ -103,10 +104,22 @@ async function main() {
     engine.terminate();
 
     const isBest = before.best === solutionMove;
+
+    // Compute real sacrifice value at the destination square.
+    // Positive value >= 3 means the opponent can win a minor piece or more.
+    let isSacrifice = false;
+    let sacValue = 0;
+    try {
+      sacValue = sacrificeValue(board, solutionMove.slice(2, 4) as any);
+      isSacrifice = sacValue >= 3;
+    } catch {
+      isSacrifice = false;
+    }
+
     const classification = classifyMove({
       isBest,
       isBook: false,
-      isSacrifice: false,
+      isSacrifice,
       evalBefore: before.score,
       evalAfter: after.score,
       secondBestEval: before.second,
@@ -118,9 +131,10 @@ async function main() {
     const ok = ["Best", "Great", "Brilliant"].includes(classification);
     total++;
     if (ok) pass++;
-    results.push({ id: p.id, rating: p.rating, isBest, classification, ok });
+    results.push({ id: p.id, rating: p.rating, isBest, isSacrifice, sacValue, classification, ok, themes: p.themes });
+    const isSacTheme = p.themes.includes("sacrifice");
     console.log(
-      `${ok ? "PASS" : "FAIL"} ${p.id} (r${p.rating}): isBest=${isBest} class=${classification}`
+      `${ok ? "PASS" : "FAIL"} ${p.id} (r${p.rating}${isSacTheme ? " [SAC]" : ""}): isBest=${isBest} sac=${isSacrifice}(${sacValue}) class=${classification}`
     );
   }
 

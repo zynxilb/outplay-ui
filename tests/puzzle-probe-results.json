@@ -7,141 +7,325 @@
       "id": "000Pw",
       "rating": 1530,
       "isBest": true,
+      "isSacrifice": false,
+      "sacValue": 0,
       "classification": "Great",
-      "ok": true
+      "ok": true,
+      "themes": [
+        "crushing",
+        "endgame",
+        "fork",
+        "short"
+      ]
     },
     {
       "id": "000rO",
       "rating": 1110,
       "isBest": true,
+      "isSacrifice": false,
+      "sacValue": 0,
       "classification": "Great",
-      "ok": true
+      "ok": true,
+      "themes": [
+        "crushing",
+        "endgame",
+        "fork",
+        "master",
+        "short"
+      ]
     },
     {
       "id": "0017R",
       "rating": 1655,
       "isBest": true,
-      "classification": "Great",
-      "ok": true
+      "isSacrifice": true,
+      "sacValue": 3,
+      "classification": "Brilliant",
+      "ok": true,
+      "themes": [
+        "advantage",
+        "fork",
+        "long",
+        "middlegame"
+      ]
     },
     {
       "id": "002IE",
       "rating": 1229,
       "isBest": true,
+      "isSacrifice": false,
+      "sacValue": -8,
       "classification": "Great",
-      "ok": true
+      "ok": true,
+      "themes": [
+        "advantage",
+        "fork",
+        "middlegame",
+        "short"
+      ]
     },
     {
       "id": "001kG",
       "rating": 1974,
       "isBest": true,
-      "classification": "Great",
-      "ok": true
+      "isSacrifice": true,
+      "sacValue": 9,
+      "classification": "Brilliant",
+      "ok": true,
+      "themes": [
+        "advantage",
+        "opening",
+        "pin",
+        "short"
+      ]
     },
     {
       "id": "002rd",
       "rating": 1795,
       "isBest": true,
+      "isSacrifice": false,
+      "sacValue": 0,
       "classification": "Great",
-      "ok": true
+      "ok": true,
+      "themes": [
+        "crushing",
+        "kingsideAttack",
+        "long",
+        "middlegame",
+        "pin"
+      ]
     },
     {
       "id": "003S3",
       "rating": 1336,
       "isBest": true,
+      "isSacrifice": true,
+      "sacValue": 3,
       "classification": "Great",
-      "ok": true
+      "ok": true,
+      "themes": [
+        "advantage",
+        "middlegame",
+        "pin",
+        "short"
+      ]
     },
     {
       "id": "003nQ",
       "rating": 1286,
       "isBest": true,
+      "isSacrifice": false,
+      "sacValue": 0,
       "classification": "Great",
-      "ok": true
+      "ok": true,
+      "themes": [
+        "crushing",
+        "kingsideAttack",
+        "master",
+        "middlegame",
+        "pin",
+        "short"
+      ]
     },
     {
       "id": "000qP",
       "rating": 2167,
       "isBest": true,
+      "isSacrifice": false,
+      "sacValue": 0,
       "classification": "Great",
-      "ok": true
+      "ok": true,
+      "themes": [
+        "crushing",
+        "endgame",
+        "exposedKing",
+        "long",
+        "skewer"
+      ]
     },
     {
       "id": "001m3",
       "rating": 1455,
       "isBest": true,
+      "isSacrifice": false,
+      "sacValue": 0,
       "classification": "Great",
-      "ok": true
+      "ok": true,
+      "themes": [
+        "advantage",
+        "endgame",
+        "short",
+        "skewer"
+      ]
     },
     {
       "id": "001xl",
       "rating": 1299,
       "isBest": true,
+      "isSacrifice": false,
+      "sacValue": -92,
       "classification": "Great",
-      "ok": true
+      "ok": true,
+      "themes": [
+        "advantage",
+        "endgame",
+        "master",
+        "masterVsMaster",
+        "short",
+        "skewer",
+        "superGM"
+      ]
     },
     {
       "id": "0039T",
       "rating": 1121,
       "isBest": true,
+      "isSacrifice": false,
+      "sacValue": 0,
       "classification": "Great",
-      "ok": true
+      "ok": true,
+      "themes": [
+        "crushing",
+        "defensiveMove",
+        "endgame",
+        "long",
+        "rookEndgame",
+        "skewer"
+      ]
     },
     {
       "id": "001XA",
       "rating": 1687,
       "isBest": true,
-      "classification": "Great",
-      "ok": true
+      "isSacrifice": true,
+      "sacValue": 5,
+      "classification": "Brilliant",
+      "ok": true,
+      "themes": [
+        "crushing",
+        "discoveredAttack",
+        "long",
+        "master",
+        "middlegame",
+        "sacrifice"
+      ]
     },
     {
       "id": "002KJ",
       "rating": 1569,
       "isBest": true,
-      "classification": "Great",
-      "ok": true
+      "isSacrifice": true,
+      "sacValue": 3,
+      "classification": "Brilliant",
+      "ok": true,
+      "themes": [
+        "crushing",
+        "discoveredAttack",
+        "middlegame",
+        "short"
+      ]
     },
     {
       "id": "003cs",
       "rating": 2119,
       "isBest": true,
-      "classification": "Great",
-      "ok": true
+      "isSacrifice": true,
+      "sacValue": 5,
+      "classification": "Brilliant",
+      "ok": true,
+      "themes": [
+        "advantage",
+        "attraction",
+        "discoveredAttack",
+        "exposedKing",
+        "middlegame",
+        "sacrifice",
+        "veryLong"
+      ]
     },
     {
       "id": "003wQ",
       "rating": 1814,
       "isBest": true,
-      "classification": "Great",
-      "ok": true
+      "isSacrifice": true,
+      "sacValue": 9,
+      "classification": "Brilliant",
+      "ok": true,
+      "themes": [
+        "advantage",
+        "discoveredAttack",
+        "middlegame",
+        "pin",
+        "short"
+      ]
     },
     {
       "id": "001h8",
       "rating": 1749,
       "isBest": true,
-      "classification": "Great",
-      "ok": true
+      "isSacrifice": true,
+      "sacValue": 9,
+      "classification": "Brilliant",
+      "ok": true,
+      "themes": [
+        "crushing",
+        "deflection",
+        "kingsideAttack",
+        "long",
+        "middlegame",
+        "sacrifice"
+      ]
     },
     {
       "id": "001xO",
       "rating": 1780,
       "isBest": true,
+      "isSacrifice": false,
+      "sacValue": 1,
       "classification": "Great",
-      "ok": true
+      "ok": true,
+      "themes": [
+        "crushing",
+        "master",
+        "masterVsMaster",
+        "middlegame",
+        "sacrifice",
+        "short"
+      ]
     },
     {
       "id": "003mh",
       "rating": 1325,
       "isBest": true,
-      "classification": "Great",
-      "ok": true
+      "isSacrifice": true,
+      "sacValue": 9,
+      "classification": "Brilliant",
+      "ok": true,
+      "themes": [
+        "advantage",
+        "attraction",
+        "fork",
+        "long",
+        "middlegame",
+        "sacrifice"
+      ]
     },
     {
       "id": "004RF",
       "rating": 1727,
       "isBest": true,
-      "classification": "Great",
-      "ok": true
+      "isSacrifice": true,
+      "sacValue": 5,
+      "classification": "Brilliant",
+      "ok": true,
+      "themes": [
+        "attraction",
+        "crushing",
+        "discoveredAttack",
+        "endgame",
+        "long",
+        "sacrifice"
+      ]
     }
   ]
 }
