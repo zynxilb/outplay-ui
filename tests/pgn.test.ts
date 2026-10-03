@@ -74,3 +74,20 @@ test("parseMoves: ignores nested variations", () => {
   const moves = parseMoves(pgn);
   assert.deepEqual(moves, ["e4", "e5", "Nf3", "Nc6"]);
 });
+
+
+test("parseMoves: comment containing parens", () => {
+  const pgn = `[Event "Test"]
+[White "A"]
+
+1. e4 {see (a) recommendation} e5 *
+`;
+  const moves = parseMoves(pgn);
+  assert.deepEqual(moves, ["e4", "e5"]);
+});
+
+test("parseMoves: CRLF line endings", () => {
+  const pgn = `[Event "Test"]\r\n[White "A"]\r\n\r\n1. e4 e5 2. Nf3\r\n`;
+  const moves = parseMoves(pgn);
+  assert.deepEqual(moves, ["e4", "e5", "Nf3"]);
+});
