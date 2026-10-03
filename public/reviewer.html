@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Outplay Reviewer</title>
+<style>
+  body { font-family: system-ui, sans-serif; max-width: 900px; margin: 20px auto; padding: 15px; background: #1e1e1e; color: #eee; }
+  textarea { width: 100%; height: 250px; background: #2a2a2a; color: #eee; border: 1px solid #444; padding: 10px; font-family: monospace; font-size: 13px; box-sizing: border-box; border-radius: 4px; }
+  button { padding: 10px 16px; background: #81B64C; color: white; border: none; font-size: 14px; cursor: pointer; margin: 8px 4px 8px 0; border-radius: 4px; }
+  button:hover { background: #6fa03d; }
+  .auth-bar { background: #2a2a2a; padding: 12px; border-radius: 6px; margin-bottom: 15px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .auth-bar button { margin: 0; }
+  .auth-status { flex: 1; font-size: 13px; min-width: 180px; }
+  #output { white-space: pre-wrap; background: #2a2a2a; padding: 15px; border-radius: 6px; margin-top: 15px; font-size: 13px; line-height: 1.6; }
+  #debug { white-space: pre-wrap; background: #1a1a1a; color: #888; padding: 10px; border-radius: 6px; margin-top: 10px; font-size: 11px; max-height: 200px; overflow-y: auto; }
+  .label { color: #81B64C; font-weight: bold; margin-top: 15px; display: block; }
+  .status { color: #888; font-size: 12px; margin-top: 8px; }
+  h1 { font-size: 20px; }
+</style>
+</head>
+<body>
+<h1>🎯 Outplay Reviewer</h1>
+
+<div class="auth-bar">
+  <span class="auth-status" id="auth-status">جاري فحص تسجيل الدخول...</span>
+  <button id="signin">تسجيل دخول Puter</button>
+  <button id="signout" style="background:#666">خروج</button>
+</div>
+
+<label class="label">البرومبت:</label>
+<textarea id="prompt">قل مرحبا</textarea>
+
+<div>
+  <button id="send-opus">Opus 5</button>
+  <button id="send-sonnet">Sonnet 5</button>
+  <button id="send-gpt">GPT-5.5</button>
+  <button id="clear" style="background:#666">مسح</button>
+</div>
+
+<div class="status" id="status"></div>
+<div id="output"></div>
+<div id="debug"></div>
+
+<script src="https://js.puter.com/v2/"></script>
+<script>
+const promptEl = document.getElementById('prompt');
+const outputEl = document.getElementById('output');
+const debugEl = document.getElementById('debug');
+const statusEl = document.getElementById('status');
+const authStatusEl = document.getElementById('auth-status');
+
+async function updateAuthStatus() {
+  try {
+    const signedIn = await puter.auth.isSignedIn();
+    if (signedIn) {
+      const user = await puter.auth.getUser();
+      authStatusEl.textContent = '✅ ' + (user.username || user.email || 'user');
+      authStatusEl.style.color = '#81B64C';
+    } else {
+      authStatusEl.textContent = '❌ مش مسجل — اضغط الزر';
+      authStatusEl.style.color = '#E58F2A';
+    }
+  } catch (e) {
+    authStatusEl.textContent = '⚠️ ' + e.message;
+    authStatusEl.style.color = '#E58F2A';
+  }
+}
+
+document.getElementById('signin').onclick = async () => {
+  try {
+    await puter.auth.signIn();
+    await updateAuthStatus();
+  } catch (e) {
+    debugEl.textContent = 'Sign-in error: ' + JSON.stringify(e, Object.getOwnPropertyNames(e), 2);
+  }
+};
+
+document.getElementById('signout').onclick = async () => {
+  await puter.auth.signOut();
+  await updateAuthStatus();
+};
+
+function extractText(r) {
+  if (typeof r === 'string') return r;
+  if (!r) return '(empty)';
+  if (r.message && r.message.content) {
+    const c = r.message.content;
+    if (typeof c === 'string') return c;
+    if (Array.isArray(c) && c[0] && c[0].text) return c[0].text;
+  }
+  if (r.text) return r.text;
+  try { return JSON.stringify(r, null, 2); } catch { return String(r); }
+}
+
+async function ask(model, name) {
+  const prompt = promptEl.value.trim();
+  if (!prompt) return alert('اكتب البرومبت');
+  const signedIn = await puter.auth.isSignedIn();
+  if (!signedIn) { alert('سجل دخول Puter الاول'); return; }
+  outputEl.textContent = '';
+  debugEl.textContent = '';
+  statusEl.textContent = '⏳ ' + name + '...';
+  try {
+    const r = await puter.ai.chat(prompt, { model });
+    debugEl.textContent = 'RAW: ' + JSON.stringify(r, null, 2).slice(0, 1500);
+    outputEl.textContent = extractText(r);
+    statusEl.textContent = '✅ ' + name;
+  } catch (e) {
+    const errStr = String(e) + ' | keys: ' + Object.keys(e).join(',') + ' | msg: ' + (e && e.message);
+    debugEl.textContent = 'ERROR: ' + errStr;
+    outputEl.textContent = 'خطا: ' + (e && e.message ? e.message : String(e));
+    statusEl.textContent = '❌';
+  }
+}
+
+document.getElementById('send-opus').onclick = () => ask('anthropic/claude-opus-5', 'Opus 5');
+document.getElementById('send-sonnet').onclick = () => ask('anthropic/claude-sonnet-5', 'Sonnet 5');
+document.getElementById('send-gpt').onclick = () => ask('openai/gpt-5.5', 'GPT-5.5');
+document.getElementById('clear').onclick = () => { promptEl.value = ''; outputEl.textContent = ''; debugEl.textContent = ''; statusEl.textContent = ''; };
+
+updateAuthStatus();
+</script>
+</body>
+</html>
