@@ -1,7 +1,7 @@
 // tests/pgn.test.ts
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { parseHeaders } from "../lib/pgn.ts";
+import { parseHeaders, parseMoves } from "../lib/pgn.ts";
 
 const FULL_PGN = `[Event "Casual Game"]
 [Site "?"]
@@ -40,4 +40,37 @@ test("parseHeaders: leading blank lines + non-standard order", () => {
   assert.equal(h.blackElo, 1500);
   assert.equal(h.white, "Y");
   assert.equal(h.black, "Z");
+});
+
+
+// ============ parseMoves ============
+test("parseMoves: attached move numbers + castling + promotion", () => {
+  const pgn = `[Event "Test (A)"]
+[White "A"]
+[Black "B"]
+
+1.e4 e5 2. Nf3 Nc6 3. O-O Bc5 4. e8=Q+ 1-0
+`;
+  const moves = parseMoves(pgn);
+  assert.deepEqual(moves, ["e4", "e5", "Nf3", "Nc6", "O-O", "Bc5", "e8=Q+"]);
+});
+
+test("parseMoves: ignores comments with numbers/moves + NAGs", () => {
+  const pgn = `[Event "Test {x}"]
+[White "A {B}"]
+
+1. e4 {King pawn 1. e4 is best} e5 $1 2. Nf3 {develops} Nc6 *
+`;
+  const moves = parseMoves(pgn);
+  assert.deepEqual(moves, ["e4", "e5", "Nf3", "Nc6"]);
+});
+
+test("parseMoves: ignores nested variations", () => {
+  const pgn = `[Event "Test (A)"]
+[White "A (B)"]
+
+1. e4 e5 (1... c5 2. Nf3 (2. d4 d5) Nc6) 2. Nf3 Nc6 1-0
+`;
+  const moves = parseMoves(pgn);
+  assert.deepEqual(moves, ["e4", "e5", "Nf3", "Nc6"]);
 });

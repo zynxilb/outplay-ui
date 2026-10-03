@@ -56,3 +56,8 @@ export function parseHeaders(text: string): PGNHeaders {
 
   return headers;
 }
+
+
+export function parseMoves(_text: string): string[] {
+  throw new Error("parseMoves is not implemented");
+}
