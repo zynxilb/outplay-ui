@@ -32,3 +32,23 @@ export function buildPositions(sans: string[], startFen?: string): string[] {
 
   return fens;
 }
+
+
+// ============ 6b.1 helpers ============
+import type { EvalScore } from "./types";
+
+export function scoreToCp(_s: EvalScore): number {
+  throw new Error("scoreToCp is not implemented");
+}
+
+export function toUci(_m: { from: string; to: string; promotion?: string }): string {
+  throw new Error("toUci is not implemented");
+}
+
+export function computeIsBest(
+  _san: string,
+  _fenBefore: string,
+  _bestmoveUci: string | null
+): boolean {
+  throw new Error("computeIsBest is not implemented");
+}
