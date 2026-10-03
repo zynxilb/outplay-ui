@@ -7,6 +7,8 @@ export interface PGNHeaders {
   result?: string;
   whiteElo?: number;
   blackElo?: number;
+  fen?: string;
+  setUp?: string;
 }
 
 export function parseHeaders(text: string): PGNHeaders {
@@ -40,6 +42,8 @@ export function parseHeaders(text: string): PGNHeaders {
         headers.blackElo = Number.isFinite(n) ? n : undefined;
         break;
       }
+      case "FEN":   headers.fen   = value; break;
+      case "SetUp": headers.setUp = value; break;
     }
   }
   return headers;

@@ -1,7 +1,8 @@
 // lib/pgn-analysis.ts
 import { Chess, DEFAULT_POSITION } from "chess.js";
 import type { EvalScore } from "./types";
-import type { PGNHeaders } from "./pgn";
+import { parseHeaders, parseMoves, type PGNHeaders } from "./pgn.ts";
+import { mapWithConcurrency } from "./concurrency.ts";
 
 // ============ buildPositions ============
 export function buildPositions(sans: string[], startFen?: string): string[] {
@@ -93,21 +94,131 @@ export interface AnalyzeOptions {
   onProgress?: (done: number, total: number) => void;
 }
 
-export function startFenFromHeaders(_pgn: string): string | undefined {
-  throw new Error("startFenFromHeaders is not implemented");
+/**
+ * Extract a starting FEN from PGN headers.
+ * Returns the FEN ONLY if `[SetUp "1"]` is present alongside `[FEN "..."]`.
+ * If either is missing, returns undefined (header is ignored).
+ */
+export function startFenFromHeaders(pgn: string): string | undefined {
+  const headers = parseHeaders(pgn);
+  if (headers.setUp !== "1") return undefined;
+  if (!headers.fen) return undefined;
+  return headers.fen;
 }
 
 /**
  * Analyze a PGN: evaluate each position once (N+1 FENs for N moves).
- * Terminal positions (checkmate/stalemate/insufficient) computed locally,
- * not sent to the evaluator.
+ * - Terminal positions (checkmate/stalemate/insufficient) computed locally,
+ *   NOT sent to the evaluator.
+ * - `evalAfter[n]` and `evalBefore[n+1]` share the same object reference.
+ * - Empty PGN returns `{headers, moves: []}` with zero evaluator calls
+ *   and zero progress callbacks (the `[FEN]` header is not inspected).
+ * - `isInsufficientMaterial` may fire mid-game (chess.js still permits moves);
+ *   its eval is `cp 0` with `bestmove: null`, so `isBest` will be false.
  *
  * NOTE: mate scores are symbolic ±10000 (NOT "mate in N"). UI must render `#`.
- * TODO (6b.2b): attach ply + cause to evaluator errors.
+ * TODO (6b.2b): attach ply + cause to evaluator errors, add AbortSignal.
  */
 export async function analyzePGN(
-  _pgn: string,
-  _options: AnalyzeOptions
+  pgn: string,
+  options: AnalyzeOptions
 ): Promise<{ headers: PGNHeaders; moves: MoveAnalysis[] }> {
-  throw new Error("analyzePGN is not implemented");
+  const { evaluator, depth = 12, concurrency = 3, onProgress } = options;
+
+  const headers = parseHeaders(pgn);
+  const sans = parseMoves(pgn);
+
+  // Empty PGN: no moves, no eval, no progress
+  if (sans.length === 0) {
+    return { headers, moves: [] };
+  }
+
+  const startFen = startFenFromHeaders(pgn);
+  const fens = buildPositions(sans, startFen);
+
+  // 1) Terminal FENs (computed locally)
+  const terminalEvals = new Map<number, PositionEval>();
+  for (let i = 0; i < fens.length; i++) {
+    const chess = new Chess(fens[i]);
+    if (chess.isCheckmate()) {
+      const loser = chess.turn();
+      const value = loser === "w" ? -10000 : 10000;
+      terminalEvals.set(i, {
+        score: { type: "mate", value },
+        bestmove: null,
+        secondScore: null,
+      });
+    } else if (chess.isStalemate() || chess.isInsufficientMaterial()) {
+      terminalEvals.set(i, {
+        score: { type: "cp", value: 0 },
+        bestmove: null,
+        secondScore: null,
+      });
+    }
+  }
+
+  // 2) Non-terminal FENs + original indices
+  const nonTerminalIndices: number[] = [];
+  const nonTerminalFens: string[] = [];
+  for (let i = 0; i < fens.length; i++) {
+    if (!terminalEvals.has(i)) {
+      nonTerminalIndices.push(i);
+      nonTerminalFens.push(fens[i]);
+    }
+  }
+
+  // 3) Progress
+  const total = fens.length;
+  let done = terminalEvals.size;
+  const safeProgress = (d: number, t: number): void => {
+    try {
+      onProgress?.(d, t);
+    } catch {
+      // callback errors must not stop analysis
+    }
+  };
+  if (terminalEvals.size > 0) safeProgress(done, total);
+
+  // 4) Place terminal evals
+  const evals: PositionEval[] = new Array(total);
+  for (const [i, e] of terminalEvals) evals[i] = e;
+
+  // 5) Evaluate non-terminal with concurrency
+  if (nonTerminalFens.length > 0) {
+    const results = await mapWithConcurrency(
+      nonTerminalFens,
+      concurrency,
+      async (fen) => {
+        const r = await evaluator(fen, depth);
+        done++;
+        safeProgress(done, total);
+        return r;
+      }
+    );
+    for (let k = 0; k < results.length; k++) {
+      evals[nonTerminalIndices[k]] = results[k];
+    }
+  }
+
+  // 6) Defensive: all evals must be filled
+  for (let i = 0; i < total; i++) {
+    if (!evals[i]) {
+      throw new Error(`analyzePGN: missing eval for FEN index ${i}`);
+    }
+  }
+
+  // 7) Pair adjacent evals (same reference for evalAfter[n] / evalBefore[n+1])
+  const moves: MoveAnalysis[] = [];
+  for (let n = 0; n < sans.length; n++) {
+    moves.push({
+      ply: n + 1,
+      san: sans[n],
+      fenBefore: fens[n],
+      fenAfter: fens[n + 1],
+      evalBefore: evals[n],
+      evalAfter: evals[n + 1],
+    });
+  }
+
+  return { headers, moves };
 }
