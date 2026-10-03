@@ -137,11 +137,12 @@ test("describePosition: last index -> final position", () => {
 });
 
 // ---- makeAbortError ----
-test("makeAbortError: signal.reason is Error -> returns it", () => {
+test("makeAbortError: signal.reason is AbortError -> returns it", () => {
   const ac = new AbortController();
-  ac.abort(new Error("custom"));
+  ac.abort(new DOMException("custom", "AbortError"));
   const e = makeAbortError(ac.signal);
   assert.equal(e.message, "custom");
+  assert.equal(e.name, "AbortError");
 });
 
 test("makeAbortError: no reason -> DOMException AbortError", () => {
@@ -249,13 +250,11 @@ test("analyzePGN: evaluator throws AnalysisError -> not re-wrapped", async () =>
 });
 
 test("analyzePGN: AnalysisError.positionIndex uses original FEN index", async () => {
-  // 2 moves, terminal after ply 2. FENs 0..2. nonTerminal = [0,1].
   const pgn = `[White "A"]\n\n1. f3 e5 2. g4 Qh4# 0-1\n`;
-  // Wait: that's 4 plies. Let's simplify: force failure at position index 1
-  let callIdx = 0;
-  const ev: Evaluator = async () => {
-    callIdx++;
-    if (callIdx === 2) throw new Error("kill");
+  let firstFen = "";
+  const ev: Evaluator = async (fen) => {
+    if (!firstFen) firstFen = fen;
+    if (fen !== firstFen) throw new Error("kill");
     return okEval;
   };
   await assert.rejects(
@@ -263,7 +262,7 @@ test("analyzePGN: AnalysisError.positionIndex uses original FEN index", async ()
     (err: Error) => {
       const e = err as AnalysisError;
       assert.equal(e.name, "AnalysisError");
-      assert.equal(e.positionIndex, 1); // second FEN evaluated (index 1)
+      assert.equal(e.positionIndex, 1);
       return true;
     }
   );

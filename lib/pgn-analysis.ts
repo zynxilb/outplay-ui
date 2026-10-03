@@ -73,7 +73,8 @@ export interface PositionEval {
 
 export type Evaluator = (
   fen: string,
-  depth: number
+  depth: number,
+  signal?: AbortSignal
 ) => Promise<PositionEval>;
 
 export interface MoveAnalysis {
@@ -92,6 +93,8 @@ export interface AnalyzeOptions {
   /** default 3 */
   concurrency?: number;
   onProgress?: (done: number, total: number) => void;
+  /** If aborted, analyzePGN rejects with AbortError. */
+  signal?: AbortSignal;
 }
 
 /**
@@ -117,13 +120,18 @@ export function startFenFromHeaders(pgn: string): string | undefined {
  *   its eval is `cp 0` with `bestmove: null`, so `isBest` will be false.
  *
  * NOTE: mate scores are symbolic ±10000 (NOT "mate in N"). UI must render `#`.
- * TODO (6b.2b): attach ply + cause to evaluator errors, add AbortSignal.
+ * - signal aborts propagate as AbortError (never wrapped).
  */
 export async function analyzePGN(
   pgn: string,
   options: AnalyzeOptions
 ): Promise<{ headers: PGNHeaders; moves: MoveAnalysis[] }> {
-  const { evaluator, depth = 12, concurrency = 3, onProgress } = options;
+  const { evaluator, depth = 12, concurrency = 3, onProgress, signal } = options;
+
+  // Abort check BEFORE any parse or work
+  if (options.signal?.aborted) {
+    throw makeAbortError(options.signal);
+  }
 
   const headers = parseHeaders(pgn);
   const sans = parseMoves(pgn);
@@ -188,12 +196,27 @@ export async function analyzePGN(
     const results = await mapWithConcurrency(
       nonTerminalFens,
       concurrency,
-      async (fen) => {
-        const r = await evaluator(fen, depth);
-        done++;
-        safeProgress(done, total);
-        return r;
-      }
+      async (fen, k) => {
+        if (signal?.aborted) throw makeAbortError(signal);
+        try {
+          const r = await evalWithRetry(evaluator, fen, depth, signal);
+          if (!signal?.aborted) {
+            done++;
+            safeProgress(done, total);
+          }
+          return r;
+        } catch (err) {
+          // If aborted by now (even if err isn't AbortError), surface abort.
+          if (isAbortError(err)) throw err;
+          if (signal?.aborted) throw makeAbortError(signal);
+          // Don't re-wrap AnalysisError.
+          if (err instanceof AnalysisError) throw err;
+          const positionIndex = nonTerminalIndices[k];
+          const msg = `Failed to evaluate position ${positionIndex} (${describePosition(positionIndex, sans.length)})`;
+          throw new AnalysisError(msg, positionIndex, fen, { cause: err });
+        }
+      },
+      signal
     );
     for (let k = 0; k < results.length; k++) {
       evals[nonTerminalIndices[k]] = results[k];
@@ -269,6 +292,8 @@ export async function evalWithRetry(
     return await evaluator(fen, depth, signal);
   } catch (err) {
     if (isAbortError(err) || signal?.aborted) throw err;
+    // AnalysisError is structural (not transient) — don't retry, don't wrap.
+    if (err instanceof AnalysisError) throw err;
 
     try {
       return await evaluator(fen, depth, signal);
@@ -285,10 +310,22 @@ export async function evalWithRetry(
 
 // ============ 6b.2b.2: position/abort helpers ============
 
-export function describePosition(_i: number, _sansLen: number): string {
-  throw new Error("describePosition is not implemented");
+/**
+ * Human-readable label for a FEN index in the fens array.
+ * i=0 -> start; i=sansLen -> final; otherwise -> between plies.
+ */
+export function describePosition(i: number, sansLen: number): string {
+  if (i === 0) return "start position";
+  if (i === sansLen) return `final position after ply ${i}`;
+  return `after ply ${i}, before ply ${i + 1}`;
 }
 
-export function makeAbortError(_signal: AbortSignal): Error {
-  throw new Error("makeAbortError is not implemented");
+/**
+ * Build an AbortError from a signal. Keeps signal.reason if it looks like an
+ * AbortError (name === "AbortError"), otherwise a fresh DOMException.
+ */
+export function makeAbortError(signal: AbortSignal): Error {
+  return isAbortError(signal.reason)
+    ? (signal.reason as Error)
+    : new DOMException("Aborted", "AbortError");
 }
