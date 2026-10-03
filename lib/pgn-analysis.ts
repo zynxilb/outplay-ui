@@ -229,8 +229,13 @@ export async function analyzePGN(
 export class AnalysisError extends Error {
   positionIndex: number;
   fen: string;
-  constructor(message: string, positionIndex: number, fen: string) {
-    super(message);
+  constructor(
+    message: string,
+    positionIndex: number,
+    fen: string,
+    options?: { cause?: unknown }
+  ) {
+    super(message, options);
     this.name = "AnalysisError";
     this.positionIndex = positionIndex;
     this.fen = fen;
@@ -275,4 +280,15 @@ export async function evalWithRetry(
       throw wrapped;
     }
   }
+}
+
+
+// ============ 6b.2b.2: position/abort helpers ============
+
+export function describePosition(_i: number, _sansLen: number): string {
+  throw new Error("describePosition is not implemented");
+}
+
+export function makeAbortError(_signal: AbortSignal): Error {
+  throw new Error("makeAbortError is not implemented");
 }
