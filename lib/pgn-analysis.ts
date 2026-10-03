@@ -1,5 +1,6 @@
 // lib/pgn-analysis.ts
 import { Chess, DEFAULT_POSITION } from "chess.js";
+import type { EvalScore } from "./types";
 
 /**
  * Pure function: convert SAN list to FEN list (N+1 FENs).
@@ -33,22 +34,56 @@ export function buildPositions(sans: string[], startFen?: string): string[] {
   return fens;
 }
 
-
 // ============ 6b.1 helpers ============
-import type { EvalScore } from "./types";
 
-export function scoreToCp(_s: EvalScore): number {
-  throw new Error("scoreToCp is not implemented");
+/**
+ * Convert an EvalScore to a centipawn integer (White perspective).
+ * Mate scores map to ±10000. `mate 0` is invalid and throws.
+ * NOTE: terminal evals should be built directly as ±10000 (not passed here).
+ */
+export function scoreToCp(s: EvalScore): number {
+  if (s.type === "mate") {
+    if (s.value === 0) {
+      throw new Error("scoreToCp: mate score with value 0 is invalid");
+    }
+    return s.value > 0 ? 10000 : -10000;
+  }
+  return s.value;
 }
 
-export function toUci(_m: { from: string; to: string; promotion?: string }): string {
-  throw new Error("toUci is not implemented");
+/**
+ * Compose UCI string from a move's from/to/promotion.
+ * Promotion letter is lowercase (Stockfish convention).
+ * NOTE: Chess960 is NOT supported — standard chess only.
+ */
+export function toUci(m: { from: string; to: string; promotion?: string }): string {
+  return m.from + m.to + (m.promotion ?? "");
 }
 
+/**
+ * Check whether the played SAN equals the engine's bestmove (UCI).
+ * Returns false for null/empty/"(none)" bestmove, illegal SAN, or invalid FEN.
+ * Comparison is case-insensitive on the bestmove side.
+ * NOTE: Chess960 is NOT supported — standard chess only.
+ */
 export function computeIsBest(
-  _san: string,
-  _fenBefore: string,
-  _bestmoveUci: string | null
+  san: string,
+  fenBefore: string,
+  bestmoveUci: string | null
 ): boolean {
-  throw new Error("computeIsBest is not implemented");
+  if (!bestmoveUci || bestmoveUci === "(none)") return false;
+
+  let chess: Chess;
+  try {
+    chess = new Chess(fenBefore);
+  } catch {
+    return false;
+  }
+
+  try {
+    const m = chess.move(san);
+    return toUci({ from: m.from, to: m.to, promotion: m.promotion }) === bestmoveUci.toLowerCase();
+  } catch {
+    return false;
+  }
 }
