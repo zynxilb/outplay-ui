@@ -229,21 +229,50 @@ export async function analyzePGN(
 export class AnalysisError extends Error {
   positionIndex: number;
   fen: string;
-  constructor(_message: string, _positionIndex: number, _fen: string) {
-    super(_message);
-    throw new Error("AnalysisError not implemented");
+  constructor(message: string, positionIndex: number, fen: string) {
+    super(message);
+    this.name = "AnalysisError";
+    this.positionIndex = positionIndex;
+    this.fen = fen;
   }
 }
 
-export function isAbortError(_err: unknown): boolean {
-  throw new Error("isAbortError is not implemented");
+/**
+ * Detect an AbortError regardless of its concrete type.
+ * Accepts DOMException, Error with name="AbortError", or a plain object
+ * with name="AbortError". Everything else (including null, strings) is false.
+ */
+export function isAbortError(err: unknown): boolean {
+  if (typeof err !== "object" || err === null) return false;
+  return (err as { name?: unknown }).name === "AbortError";
 }
 
+/**
+ * Evaluate a FEN with one retry on failure.
+ * - NO retry on AbortError or if signal.aborted at any point.
+ * - If both attempts fail, throws a new Error whose `cause` is the SECOND
+ *   error (the first is lost by design — keep it simple).
+ * - If the first attempt succeeds, returns its result directly.
+ */
 export async function evalWithRetry(
-  _evaluator: Evaluator,
-  _fen: string,
-  _depth: number,
-  _signal?: AbortSignal
+  evaluator: Evaluator,
+  fen: string,
+  depth: number,
+  signal?: AbortSignal
 ): Promise<PositionEval> {
-  throw new Error("evalWithRetry is not implemented");
+  try {
+    return await evaluator(fen, depth, signal);
+  } catch (err) {
+    if (isAbortError(err) || signal?.aborted) throw err;
+
+    try {
+      return await evaluator(fen, depth, signal);
+    } catch (err2) {
+      const wrapped =
+        err2 instanceof Error
+          ? new Error(err2.message, { cause: err2 })
+          : new Error(String(err2), { cause: err2 });
+      throw wrapped;
+    }
+  }
 }
