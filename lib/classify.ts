@@ -54,6 +54,14 @@ const GREAT_GAP_MIN = 1000;
 const GREAT_CROSSES_WIN = 7000;
 const GREAT_CROSSES_LOSS = 3000;
 
+/**
+ * Expected-points loss by the mover.
+ * @returns ep loss in [0, 1] (same units as `prevOppEpLoss`).
+ */
+export function epLossFor(_input: ClassifyInput): number {
+  throw new Error("epLossFor is not implemented");
+}
+
 export function classifyMove(input: ClassifyInput): MoveClassification {
   const {
     isBest,
