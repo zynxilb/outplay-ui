@@ -58,8 +58,13 @@ const GREAT_CROSSES_LOSS = 3000;
  * Expected-points loss by the mover.
  * @returns ep loss in [0, 1] (same units as `prevOppEpLoss`).
  */
-export function epLossFor(_input: ClassifyInput): number {
-  throw new Error("epLossFor is not implemented");
+export function epLossFor(input: ClassifyInput): number {
+  const { evalBefore, evalAfter, moverColor } = input;
+  const moverBefore = moverColor === "w" ? evalBefore : -evalBefore;
+  const moverAfter = moverColor === "w" ? evalAfter : -evalAfter;
+  const epBefore = expectedPoints(moverBefore);
+  const epAfter = expectedPoints(moverAfter);
+  return Math.max(0, epBefore - epAfter);
 }
 
 export function classifyMove(input: ClassifyInput): MoveClassification {
@@ -82,7 +87,7 @@ export function classifyMove(input: ClassifyInput): MoveClassification {
 
   const epBefore = bp(expectedPoints(moverBefore));
   const epAfter = bp(expectedPoints(moverAfter));
-  const epLoss = Math.max(0, epBefore - epAfter);
+  const epLoss = bp(epLossFor(input));
 
   const prevOppBp = prevOppEpLoss === null ? null : bp(prevOppEpLoss);
 
