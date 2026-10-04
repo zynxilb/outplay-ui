@@ -34,11 +34,13 @@ export class ApiError extends Error {
   status: number;
   retryAfterMs: number | null;
   constructor(
-    _status: number,
-    _retryAfterMs: number | null = null,
-    _message?: string
+    status: number,
+    retryAfterMs: number | null = null,
+    message?: string
   ) {
-    super("not implemented");
-    throw new Error("ApiError not implemented");
+    super(message ?? `API error ${status}`);
+    this.name = "ApiError";
+    this.status = status;
+    this.retryAfterMs = retryAfterMs;
   }
 }

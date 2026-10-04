@@ -2,7 +2,7 @@
 import { Chess, DEFAULT_POSITION } from "chess.js";
 import type { EvalScore } from "./types";
 import { classifyMove, epLossFor, type MoveClassification } from "./classify.ts";
-import { InvalidFenError, IllegalMoveError, NetworkError } from "./pgn-errors.ts";
+import { InvalidFenError, IllegalMoveError, NetworkError, ApiError } from "./pgn-errors.ts";
 import { parseHeaders, parseMoves, type PGNHeaders } from "./pgn.ts";
 import { mapWithConcurrency } from "./concurrency.ts";
 
@@ -254,23 +254,11 @@ export async function analyzePGN(
     }
   }
 
-  // 7) Pair adjacent evals (same reference for evalAfter[n] / evalBefore[n+1])
-  const moves: MoveAnalysis[] = [];
-  for (let n = 0; n < sans.length; n++) {
-    moves.push({
-      ply: n + 1,
-      san: sans[n],
-      fenBefore: fens[n],
-      fenAfter: fens[n + 1],
-      evalBefore: evals[n],
-      evalAfter: evals[n + 1],
-    });
-  }
-
-  // 8) Compute epLosses (prevOppEpLoss for the next move)
+  // 7) Pair adjacent evals + classify in one pass
   const sideToMove = (fen: string): "w" | "b" =>
     fen.split(" ")[1] === "b" ? "b" : "w";
 
+  // First pass: compute epLosses (needed as prevOppEpLoss for next move)
   const epLosses: number[] = sans.map((_, n) => {
     const moverColor = sideToMove(fens[n]);
     return epLossFor({
@@ -284,14 +272,16 @@ export async function analyzePGN(
     });
   });
 
-  // 9) Classify each move
+  // Second pass: build MoveAnalysis with classification
+  const moves: MoveAnalysis[] = [];
   for (let n = 0; n < sans.length; n++) {
     const moverColor = sideToMove(fens[n]);
     const cpBefore = scoreToCp(evals[n].score);
     const cpAfter = scoreToCp(evals[n + 1].score);
-    const cpSecond = evals[n].secondScore
-      ? scoreToCp(evals[n].secondScore)
-      : null;
+    const cpSecond =
+      evals[n].secondScore !== null
+        ? scoreToCp(evals[n].secondScore!)
+        : null;
     const isBest = isBestMove(
       sans[n],
       fens[n],
@@ -301,7 +291,7 @@ export async function analyzePGN(
     );
     const legalMoves = new Chess(fens[n]).moves().length;
 
-    moves[n].classification = classifyMove({
+    const classification = classifyMove({
       isBest,
       isBook: false,
       isSacrifice: false,
@@ -311,6 +301,16 @@ export async function analyzePGN(
       moverColor,
       prevOppEpLoss: n === 0 ? null : epLosses[n - 1],
       legalMoves,
+    });
+
+    moves.push({
+      ply: n + 1,
+      san: sans[n],
+      fenBefore: fens[n],
+      fenAfter: fens[n + 1],
+      evalBefore: evals[n],
+      evalAfter: evals[n + 1],
+      classification,
     });
   }
 
@@ -365,6 +365,14 @@ export async function evalWithRetry(
     if (isAbortError(err) || signal?.aborted) throw err;
     // AnalysisError is structural (not transient) — don't retry, don't wrap.
     if (err instanceof AnalysisError) throw err;
+    // 4xx (bad request) is not retryable.
+    if (err instanceof ApiError && err.status >= 400 && err.status < 500) {
+      throw err;
+    }
+    // 503/504: wait Retry-After before retry, then throw after one retry.
+    if (err instanceof ApiError && err.retryAfterMs !== null) {
+      await new Promise((r) => setTimeout(r, err.retryAfterMs!));
+    }
 
     try {
       return await evaluator(fen, depth, signal);
@@ -489,12 +497,22 @@ export function makeApiEvaluator(
     if (!res.ok) {
       let detail = "";
       try {
-        const errJson = await res.json() as { error?: unknown };
-        if (typeof errJson.error === "string") detail = `: ${errJson.error}`;
+        const errJson = (await res.json()) as { error?: unknown };
+        if (typeof errJson.error === "string") detail = errJson.error;
       } catch {
         // body wasn't JSON
       }
-      throw new Error(`API /api/eval failed (${res.status})${detail}`);
+
+      const retryHeader = res.headers?.get("Retry-After");
+      const retryAfterMs = retryHeader
+        ? parseInt(retryHeader, 10) * 1000
+        : null;
+
+      throw new ApiError(
+        res.status,
+        Number.isFinite(retryAfterMs as number) ? retryAfterMs : null,
+        detail || undefined
+      );
     }
 
     const json = await res.json() as {

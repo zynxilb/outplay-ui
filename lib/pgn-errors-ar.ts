@@ -1,6 +1,6 @@
 // lib/pgn-errors-ar.ts
 import { AnalysisError, isAbortError } from "./pgn-analysis.ts";
-import { InvalidFenError, IllegalMoveError, NetworkError } from "./pgn-errors.ts";
+import { InvalidFenError, IllegalMoveError, NetworkError, ApiError } from "./pgn-errors.ts";
 
 const GENERIC = "حصل خطأ غير متوقع، حاول تاني";
 
@@ -30,7 +30,15 @@ export function toArabicError(err: unknown): string {
     return `نقلة غير قانونية رقم ${err.ply}: ${err.san}`;
   }
 
-  // 5) Network / fetch errors
+  // 5) API errors
+  if (err instanceof ApiError) {
+    if (err.status === 503 || err.status === 504) {
+      return "السيرفر مشغول، حاول تاني بعد شوية";
+    }
+    return "حصل خطأ في الاتصال بالسيرفر، حاول تاني";
+  }
+
+  // 6) Network / fetch errors
   if (err instanceof NetworkError) {
     return "مشكلة في الاتصال، حاول تاني";
   }

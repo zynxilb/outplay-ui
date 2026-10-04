@@ -44,11 +44,15 @@ test("makeApiEvaluator: bestmove '(none)' -> null", async () => {
   assert.equal(r.bestmove, null);
 });
 
-test("makeApiEvaluator: !res.ok throws with status", async () => {
+test("makeApiEvaluator: !res.ok throws ApiError with status", async () => {
   const fetchFn = (async () => okJson({ error: "boom" }, false, 500)) as unknown as typeof fetch;
   await assert.rejects(
     makeApiEvaluator(fetchFn)("fen", 12),
-    /500/
+    (err: Error) => {
+      assert.equal(err.name, "ApiError");
+      assert.equal((err as ApiError).status, 500);
+      return true;
+    }
   );
 });
 
