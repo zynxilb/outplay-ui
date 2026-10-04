@@ -130,13 +130,19 @@ export function startFenFromHeaders(pgn: string): string | undefined {
  * - true if evalAfter is a mating score FOR the mover
  */
 export function isBestMove(
-  _san: string,
-  _fenBefore: string,
-  _bestmoveUci: string | null,
-  _evalAfter: PositionEval,
-  _moverColor: "w" | "b"
+  san: string,
+  fenBefore: string,
+  bestmoveUci: string | null,
+  evalAfter: PositionEval,
+  moverColor: "w" | "b"
 ): boolean {
-  throw new Error("isBestMove is not implemented");
+  // Mate for the mover -> best by definition
+  if (evalAfter.score.type === "mate") {
+    const v = evalAfter.score.value;
+    if (moverColor === "w" && v > 0) return true;
+    if (moverColor === "b" && v < 0) return true;
+  }
+  return computeIsBest(san, fenBefore, bestmoveUci);
 }
 
 export async function analyzePGN(
@@ -257,6 +263,53 @@ export async function analyzePGN(
       fenAfter: fens[n + 1],
       evalBefore: evals[n],
       evalAfter: evals[n + 1],
+    });
+  }
+
+  // 8) Compute epLosses (prevOppEpLoss for the next move)
+  const sideToMove = (fen: string): "w" | "b" =>
+    fen.split(" ")[1] === "b" ? "b" : "w";
+
+  const epLosses: number[] = sans.map((_, n) => {
+    const moverColor = sideToMove(fens[n]);
+    return epLossFor({
+      isBest: false,
+      isBook: false,
+      isSacrifice: false,
+      evalBefore: scoreToCp(evals[n].score),
+      evalAfter: scoreToCp(evals[n + 1].score),
+      secondBestEval: null,
+      moverColor,
+    });
+  });
+
+  // 9) Classify each move
+  for (let n = 0; n < sans.length; n++) {
+    const moverColor = sideToMove(fens[n]);
+    const cpBefore = scoreToCp(evals[n].score);
+    const cpAfter = scoreToCp(evals[n + 1].score);
+    const cpSecond = evals[n].secondScore
+      ? scoreToCp(evals[n].secondScore)
+      : null;
+    const isBest = isBestMove(
+      sans[n],
+      fens[n],
+      evals[n].bestmove,
+      evals[n + 1],
+      moverColor
+    );
+    const legalMoves = new Chess(fens[n]).moves().length;
+
+    moves[n].classification = classifyMove({
+      isBest,
+      isBook: false,
+      isSacrifice: false,
+      evalBefore: cpBefore,
+      evalAfter: cpAfter,
+      secondBestEval: cpSecond,
+      moverColor,
+      prevOppEpLoss: n === 0 ? null : epLosses[n - 1],
+      legalMoves,
     });
   }
 

@@ -38,7 +38,8 @@ test("isBestMove: mate for white -> true even without bestmove match", () => {
 
 test("isBestMove: mate for black -> true when mover=black", () => {
   const fen = "r6k/8/8/8/8/8/5PPP/6K1 b - - 0 1";
-  assert.equal(isBestMove("Ra8#", fen, null, mateEval(10000), "b"), true);
+  // evals are White-perspective: black winning = negative
+  assert.equal(isBestMove("Ra8#", fen, null, mateEval(-10000), "b"), true);
 });
 
 test("isBestMove: mate against mover -> false", () => {
