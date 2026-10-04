@@ -54,6 +54,15 @@ export function validatePgnInput(
  * Arabic user-facing message for a validation reason.
  * Uses MAX_PLIES constant for the too-many-moves message.
  */
-export function pgnValidationMessageAr(_reason: PgnValidationReason): string {
-  throw new Error("pgnValidationMessageAr is not implemented");
+export function pgnValidationMessageAr(reason: PgnValidationReason): string {
+  switch (reason) {
+    case "empty":
+      return "المباراة مفيهاش نقلات";
+    case "too-large":
+      return "الملف كبير أوي";
+    case "multiple-games":
+      return "الملف فيه أكتر من مباراة، ارفع مباراة واحدة بس";
+    case "too-many-moves":
+      return `المباراة طويلة أوي (أكتر من ${MAX_PLIES} نقلة)`;
+  }
 }

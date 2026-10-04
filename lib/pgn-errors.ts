@@ -23,9 +23,8 @@ export class IllegalMoveError extends Error {
 
 
 export class NetworkError extends Error {
-  cause?: unknown;
-  constructor(_cause?: unknown) {
-    super("Network error");
-    throw new Error("NetworkError not implemented");
+  constructor(cause?: unknown) {
+    super("Network error", { cause });
+    this.name = "NetworkError";
   }
 }
