@@ -85,7 +85,7 @@ export interface MoveAnalysis {
   fenAfter: string;
   evalBefore: PositionEval;
   evalAfter: PositionEval;
-  classification?: MoveClassification;
+  classification: MoveClassification;
 }
 
 export interface AnalyzeOptions {
@@ -398,4 +398,19 @@ export function makeAbortError(signal: AbortSignal): Error {
   return isAbortError(signal.reason)
     ? (signal.reason as Error)
     : new DOMException("Aborted", "AbortError");
+}
+
+
+// ============ 7a.1: toClassifiedMoves ============
+import type { ClassifiedMove } from "./types";
+
+/**
+ * Convert analyzePGN output to the ClassifiedMove shape used by UI components.
+ * Computes from/to by replaying each SAN on its fenBefore.
+ * Throws if any move lacks a classification (should not happen).
+ */
+export function toClassifiedMoves(
+  _moves: MoveAnalysis[]
+): ClassifiedMove[] {
+  throw new Error("toClassifiedMoves is not implemented");
 }
