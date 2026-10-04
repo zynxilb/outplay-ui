@@ -7,7 +7,10 @@
 export class SerialQueue {
   private chain: Promise<unknown> = Promise.resolve();
 
-  run<T>(_task: () => Promise<T>): Promise<T> {
-    throw new Error("SerialQueue.run is not implemented");
+  run<T>(task: () => Promise<T>): Promise<T> {
+    const result = this.chain.then(task, task);
+    // swallow result for the chain, but keep it for the caller
+    this.chain = result.catch(() => undefined);
+    return result;
   }
 }
