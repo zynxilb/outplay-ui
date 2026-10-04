@@ -24,7 +24,7 @@ export function validatePgnInput(
   fileSize?: number
 ): PgnValidationResult {
   // 1) Size checks
-  if (typeof fileSize === "number" && fileSize > MAX_FILE_SIZE) {
+  if (fileSize !== undefined && fileSize > MAX_FILE_SIZE) {
     return { ok: false, reason: "too-large" };
   }
   if (text.length > MAX_TEXT_LENGTH) {
