@@ -1,6 +1,6 @@
 // lib/pgn-errors-ar.ts
 import { AnalysisError, isAbortError } from "./pgn-analysis.ts";
-import { InvalidFenError, IllegalMoveError } from "./pgn-errors.ts";
+import { InvalidFenError, IllegalMoveError, NetworkError } from "./pgn-errors.ts";
 
 const GENERIC = "حصل خطأ غير متوقع، حاول تاني";
 
@@ -31,7 +31,7 @@ export function toArabicError(err: unknown): string {
   }
 
   // 5) Network / fetch errors
-  if (err instanceof TypeError) {
+  if (err instanceof NetworkError) {
     return "مشكلة في الاتصال، حاول تاني";
   }
 

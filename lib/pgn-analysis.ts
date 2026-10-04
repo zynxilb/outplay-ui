@@ -2,7 +2,7 @@
 import { Chess, DEFAULT_POSITION } from "chess.js";
 import type { EvalScore } from "./types";
 import { classifyMove, epLossFor, type MoveClassification } from "./classify.ts";
-import { InvalidFenError, IllegalMoveError } from "./pgn-errors.ts";
+import { InvalidFenError, IllegalMoveError, NetworkError } from "./pgn-errors.ts";
 import { parseHeaders, parseMoves, type PGNHeaders } from "./pgn.ts";
 import { mapWithConcurrency } from "./concurrency.ts";
 
@@ -472,12 +472,19 @@ export function makeApiEvaluator(
   return async (fen, depth, signal) => {
     const doFetch = fetchFn ?? fetch;
 
-    const res = await doFetch("/api/eval", {
+    let res: Response;
+    try {
+      res = await doFetch("/api/eval", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ fen, depth }),
-      signal,
-    });
+        signal,
+      });
+    } catch (err) {
+      // AbortError passes through; anything else becomes NetworkError
+      if (isAbortError(err)) throw err;
+      throw new NetworkError(err);
+    }
 
     if (!res.ok) {
       let detail = "";

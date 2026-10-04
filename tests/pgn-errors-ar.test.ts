@@ -3,7 +3,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { toArabicError } from "../lib/pgn-errors-ar.ts";
 import { AnalysisError } from "../lib/pgn-analysis.ts";
-import { InvalidFenError, IllegalMoveError } from "../lib/pgn-errors.ts";
+import { InvalidFenError, IllegalMoveError, NetworkError } from "../lib/pgn-errors.ts";
 
 test("toArabicError: AbortError -> Arabic abort message", () => {
   const e = new DOMException("original-english", "AbortError");
@@ -45,6 +45,17 @@ test("toArabicError: unknown error -> generic Arabic message", () => {
   const msg = toArabicError(new Error("something in English"));
   assert.ok(!msg.includes("something in English"));
   assert.ok(!msg.includes("Error"));
+  assert.ok(msg.length > 0);
+});
+
+test("toArabicError: NetworkError -> Arabic connection message", () => {
+  const msg = toArabicError(new NetworkError(new Error("boom")));
+  assert.ok(msg.includes("الاتصال") || msg.includes("مشكلة"));
+});
+
+test("toArabicError: TypeError (bug, not network) -> generic, not network", () => {
+  const msg = toArabicError(new TypeError("undefined.foo"));
+  assert.ok(!msg.includes("الاتصال"));
   assert.ok(msg.length > 0);
 });
 
