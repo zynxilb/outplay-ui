@@ -61,3 +61,46 @@ test("SerialQueue: rejection does not leak as unhandled", async () => {
   const r = await q.run(async () => "ok");
   assert.equal(r, "ok");
 });
+
+
+import { QueueFullError } from "../lib/serial-queue.ts";
+
+test("SerialQueue: no maxPending -> unlimited (backward compat)", async () => {
+  const q = new SerialQueue();
+  const tasks = Array.from({ length: 20 }, () => q.run(async () => 1));
+  const r = await Promise.all(tasks);
+  assert.equal(r.length, 20);
+});
+
+test("SerialQueue: maxPending rejects overflow with QueueFullError", async () => {
+  const q = new SerialQueue({ maxPending: 2 });
+  const blocker = q.run(async () => {
+    await sleep(50);
+    return "done";
+  });
+  // 2 pending allowed
+  const a = q.run(async () => "a");
+  const b = q.run(async () => "b");
+  // 3rd pending -> reject
+  await assert.rejects(
+    q.run(async () => "c"),
+    (e: Error) => e.name === "QueueFullError" && e instanceof QueueFullError
+  );
+  assert.equal(await blocker, "done");
+  assert.equal(await a, "a");
+  assert.equal(await b, "b");
+});
+
+test("SerialQueue: after a pending task finishes, new tasks are accepted", async () => {
+  const q = new SerialQueue({ maxPending: 1 });
+  const blocker = q.run(async () => { await sleep(30); return "done"; });
+  const a = q.run(async () => "a");
+  await assert.rejects(
+    q.run(async () => "x"),
+    (e: Error) => e.name === "QueueFullError"
+  );
+  await blocker;
+  await a;
+  // now pending is 0 again
+  assert.equal(await q.run(async () => "y"), "y");
+});
