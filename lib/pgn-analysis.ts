@@ -454,3 +454,19 @@ export function toClassifiedMoves(
 
   return result;
 }
+
+
+// ============ 7a.2: makeApiEvaluator ============
+
+/**
+ * Create an Evaluator that calls /api/eval via fetch.
+ * - Validates res.ok and JSON shape.
+ * - Converts bestmove "(none)" or empty to null.
+ * - Passes signal through to fetch.
+ * - fetchFn is injectable for tests.
+ */
+export function makeApiEvaluator(
+  _fetchFn?: typeof fetch
+): Evaluator {
+  throw new Error("makeApiEvaluator is not implemented");
+}
