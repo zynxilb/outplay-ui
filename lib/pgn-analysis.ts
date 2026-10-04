@@ -2,6 +2,7 @@
 import { Chess, DEFAULT_POSITION } from "chess.js";
 import type { EvalScore } from "./types";
 import { classifyMove, epLossFor, type MoveClassification } from "./classify.ts";
+import { InvalidFenError, IllegalMoveError } from "./pgn-errors.ts";
 import { parseHeaders, parseMoves, type PGNHeaders } from "./pgn.ts";
 import { mapWithConcurrency } from "./concurrency.ts";
 
@@ -12,7 +13,7 @@ export function buildPositions(sans: string[], startFen?: string): string[] {
   try {
     chess = new Chess(start);
   } catch {
-    throw new Error(`Invalid start FEN: ${start}`);
+    throw new InvalidFenError(start);
   }
   const fens: string[] = [chess.fen()];
   for (let i = 0; i < sans.length; i++) {
@@ -21,8 +22,8 @@ export function buildPositions(sans: string[], startFen?: string): string[] {
     try {
       chess.move(san);
     } catch (e) {
-      const reason = e instanceof Error ? ` (${e.message})` : "";
-      throw new Error(`Illegal move at ply ${ply}: ${san}${reason}`);
+      const reason = e instanceof Error ? e.message : undefined;
+      throw new IllegalMoveError(ply, san, reason);
     }
     fens.push(chess.fen());
   }
