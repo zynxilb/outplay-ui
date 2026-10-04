@@ -463,10 +463,68 @@ export function toClassifiedMoves(
  * - Validates res.ok and JSON shape.
  * - Converts bestmove "(none)" or empty to null.
  * - Passes signal through to fetch.
- * - fetchFn is injectable for tests.
+ * - fetchFn is injectable for tests (defaults to global fetch at call time).
  */
 export function makeApiEvaluator(
-  _fetchFn?: typeof fetch
+  fetchFn?: typeof fetch
 ): Evaluator {
-  throw new Error("makeApiEvaluator is not implemented");
+  return async (fen, depth, signal) => {
+    const doFetch = fetchFn ?? fetch;
+
+    const res = await doFetch("/api/eval", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ fen, depth }),
+      signal,
+    });
+
+    if (!res.ok) {
+      let detail = "";
+      try {
+        const errJson = await res.json() as { error?: unknown };
+        if (typeof errJson.error === "string") detail = `: ${errJson.error}`;
+      } catch {
+        // body wasn't JSON
+      }
+      throw new Error(`API /api/eval failed (${res.status})${detail}`);
+    }
+
+    const json = await res.json() as {
+      bestmove?: unknown;
+      score?: unknown;
+      secondScore?: unknown;
+    };
+
+    const parseScore = (raw: unknown, where: string): EvalScore => {
+      if (
+        typeof raw !== "object" ||
+        raw === null ||
+        typeof (raw as { type?: unknown }).type !== "string" ||
+        typeof (raw as { value?: unknown }).value !== "number"
+      ) {
+        throw new Error(`Invalid ${where} in API response`);
+      }
+      const t = (raw as { type: string }).type;
+      const v = (raw as { value: number }).value;
+      if (t !== "cp" && t !== "mate") {
+        throw new Error(`Invalid ${where}.type: ${t}`);
+      }
+      if (t === "mate" && v === 0) {
+        throw new Error(`Invalid ${where}: mate value 0`);
+      }
+      return { type: t, value: v };
+    };
+
+    const score = parseScore(json.score, "score");
+    const secondScore =
+      json.secondScore == null ? null : parseScore(json.secondScore, "secondScore");
+
+    const rawBest = json.bestmove;
+    const bestmove =
+      typeof rawBest === "string" && rawBest !== "" && rawBest !== "(none)"
+        ? rawBest
+        : null;
+
+    return { score, bestmove, secondScore };
+  };
 }
