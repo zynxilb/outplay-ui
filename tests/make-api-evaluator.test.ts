@@ -112,3 +112,51 @@ test("makeApiEvaluator: missing secondScore -> null", async () => {
   const r = await makeApiEvaluator(fetchFn)("fen", 12);
   assert.equal(r.secondScore, null);
 });
+
+
+import { ApiError } from "../lib/pgn-errors.ts";
+
+test("makeApiEvaluator: 503 -> ApiError with status + Retry-After", async () => {
+  const fetchFn = (async () => ({
+    ok: false,
+    status: 503,
+    headers: new Headers({ "Retry-After": "2" }),
+    json: async () => ({ error: "busy" }),
+  })) as unknown as typeof fetch;
+  await assert.rejects(
+    makeApiEvaluator(fetchFn)("fen", 12),
+    (err: Error) => {
+      assert.equal(err.name, "ApiError");
+      const e = err as ApiError;
+      assert.equal(e.status, 503);
+      assert.equal(e.retryAfterMs, 2000);
+      return true;
+    }
+  );
+});
+
+test("makeApiEvaluator: 504 -> ApiError", async () => {
+  const fetchFn = (async () => ({
+    ok: false,
+    status: 504,
+    headers: new Headers(),
+    json: async () => ({ error: "timeout" }),
+  })) as unknown as typeof fetch;
+  await assert.rejects(
+    makeApiEvaluator(fetchFn)("fen", 12),
+    (err: Error) => (err as ApiError).status === 504
+  );
+});
+
+test("makeApiEvaluator: 400 -> ApiError (no retry)", async () => {
+  const fetchFn = (async () => ({
+    ok: false,
+    status: 400,
+    headers: new Headers(),
+    json: async () => ({ error: "bad fen" }),
+  })) as unknown as typeof fetch;
+  await assert.rejects(
+    makeApiEvaluator(fetchFn)("fen", 12),
+    (err: Error) => (err as ApiError).status === 400
+  );
+});

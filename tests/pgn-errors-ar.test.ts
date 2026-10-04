@@ -63,3 +63,21 @@ test("toArabicError: null / undefined -> generic", () => {
   assert.ok(toArabicError(null).length > 0);
   assert.ok(toArabicError(undefined).length > 0);
 });
+
+
+import { ApiError } from "../lib/pgn-errors.ts";
+
+test("toArabicError: ApiError 503 -> busy message", () => {
+  const msg = toArabicError(new ApiError(503, 2000));
+  assert.ok(msg.includes("مشغول") || msg.includes("حاول تاني"));
+});
+
+test("toArabicError: ApiError 504 -> busy message", () => {
+  const msg = toArabicError(new ApiError(504));
+  assert.ok(msg.includes("مشغول") || msg.includes("حاول تاني"));
+});
+
+test("toArabicError: ApiError 400 -> generic", () => {
+  const msg = toArabicError(new ApiError(400));
+  assert.ok(msg.length > 0);
+});

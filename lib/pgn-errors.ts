@@ -28,3 +28,17 @@ export class NetworkError extends Error {
     this.name = "NetworkError";
   }
 }
+
+
+export class ApiError extends Error {
+  status: number;
+  retryAfterMs: number | null;
+  constructor(
+    _status: number,
+    _retryAfterMs: number | null = null,
+    _message?: string
+  ) {
+    super("not implemented");
+    throw new Error("ApiError not implemented");
+  }
+}

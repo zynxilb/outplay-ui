@@ -66,3 +66,19 @@ test("NetworkError: instanceof Error, name, cause preserved", () => {
   assert.equal(e.name, "NetworkError");
   assert.equal(e.cause, original);
 });
+
+
+import { ApiError } from "../lib/pgn-errors.ts";
+
+test("ApiError: instanceof Error, name, status, retryAfterMs", () => {
+  const e = new ApiError(503, 2000);
+  assert.ok(e instanceof Error);
+  assert.equal(e.name, "ApiError");
+  assert.equal(e.status, 503);
+  assert.equal(e.retryAfterMs, 2000);
+});
+
+test("ApiError: without retryAfter defaults to null", () => {
+  const e = new ApiError(400);
+  assert.equal(e.retryAfterMs, null);
+});
