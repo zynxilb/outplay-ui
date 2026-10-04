@@ -410,7 +410,47 @@ import type { ClassifiedMove } from "./types";
  * Throws if any move lacks a classification (should not happen).
  */
 export function toClassifiedMoves(
-  _moves: MoveAnalysis[]
+  moves: MoveAnalysis[]
 ): ClassifiedMove[] {
-  throw new Error("toClassifiedMoves is not implemented");
+  const result: ClassifiedMove[] = [];
+
+  for (const m of moves) {
+    if (!m.classification) {
+      throw new Error(
+        `toClassifiedMoves: missing classification for ply ${m.ply} (${m.san})`
+      );
+    }
+
+    const chess = new Chess(m.fenBefore);
+    const moverColor: "w" | "b" =
+      m.fenBefore.split(" ")[1] === "b" ? "b" : "w";
+
+    let from = "";
+    let to = "";
+    try {
+      const mv = chess.move(m.san);
+      from = mv.from;
+      to = mv.to;
+    } catch (e) {
+      const reason = e instanceof Error ? ` (${e.message})` : "";
+      throw new Error(
+        `toClassifiedMoves: cannot replay ply ${m.ply} (${m.san})${reason}`
+      );
+    }
+
+    result.push({
+      ply: m.ply,
+      san: m.san,
+      from,
+      to,
+      color: moverColor,
+      classification: m.classification,
+      evalBefore: scoreToCp(m.evalBefore.score),
+      evalAfter: scoreToCp(m.evalAfter.score),
+      motifs: [],
+      motifArrows: undefined,
+    });
+  }
+
+  return result;
 }
