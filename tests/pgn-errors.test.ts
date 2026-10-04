@@ -55,3 +55,14 @@ test("buildPositions: illegal move throws IllegalMoveError with ply+san", () => 
     }
   );
 });
+
+
+import { NetworkError } from "../lib/pgn-errors.ts";
+
+test("NetworkError: instanceof Error, name, cause preserved", () => {
+  const original = new Error("fetch failed");
+  const e = new NetworkError(original);
+  assert.ok(e instanceof Error);
+  assert.equal(e.name, "NetworkError");
+  assert.equal(e.cause, original);
+});

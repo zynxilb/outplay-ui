@@ -20,3 +20,12 @@ export class IllegalMoveError extends Error {
     this.san = san;
   }
 }
+
+
+export class NetworkError extends Error {
+  cause?: unknown;
+  constructor(_cause?: unknown) {
+    super("Network error");
+    throw new Error("NetworkError not implemented");
+  }
+}

@@ -48,3 +48,12 @@ export function validatePgnInput(
 
   return { ok: true, text };
 }
+
+
+/**
+ * Arabic user-facing message for a validation reason.
+ * Uses MAX_PLIES constant for the too-many-moves message.
+ */
+export function pgnValidationMessageAr(_reason: PgnValidationReason): string {
+  throw new Error("pgnValidationMessageAr is not implemented");
+}

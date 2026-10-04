@@ -85,3 +85,24 @@ test("validatePgnInput: CRLF PGN -> ok", () => {
   const r = validatePgnInput(crlf);
   assert.equal(r.ok, true);
 });
+
+
+import { pgnValidationMessageAr } from "../lib/pgn-validate.ts";
+
+test("pgnValidationMessageAr: every reason returns non-empty string", () => {
+  const reasons = ["empty", "too-large", "multiple-games", "too-many-moves"] as const;
+  for (const r of reasons) {
+    const msg = pgnValidationMessageAr(r);
+    assert.ok(typeof msg === "string" && msg.length > 0);
+  }
+});
+
+test("pgnValidationMessageAr: too-many-moves mentions 300", () => {
+  const msg = pgnValidationMessageAr("too-many-moves");
+  assert.ok(msg.includes("300"));
+});
+
+test("pgnValidationMessageAr: multiple-games mentions one game", () => {
+  const msg = pgnValidationMessageAr("multiple-games");
+  assert.ok(msg.includes("واحدة") || msg.includes("مباراة واحدة"));
+});
