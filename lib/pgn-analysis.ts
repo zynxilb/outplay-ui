@@ -1,6 +1,7 @@
 // lib/pgn-analysis.ts
 import { Chess, DEFAULT_POSITION } from "chess.js";
 import type { EvalScore } from "./types";
+import { classifyMove, epLossFor, type MoveClassification } from "./classify.ts";
 import { parseHeaders, parseMoves, type PGNHeaders } from "./pgn.ts";
 import { mapWithConcurrency } from "./concurrency.ts";
 
@@ -84,6 +85,7 @@ export interface MoveAnalysis {
   fenAfter: string;
   evalBefore: PositionEval;
   evalAfter: PositionEval;
+  classification?: MoveClassification;
 }
 
 export interface AnalyzeOptions {
@@ -122,6 +124,21 @@ export function startFenFromHeaders(pgn: string): string | undefined {
  * NOTE: mate scores are symbolic ±10000 (NOT "mate in N"). UI must render `#`.
  * - signal aborts propagate as AbortError (never wrapped).
  */
+/**
+ * Whether the played move is "best" for classification purposes.
+ * - true if computeIsBest(...) matches engine bestmove
+ * - true if evalAfter is a mating score FOR the mover
+ */
+export function isBestMove(
+  _san: string,
+  _fenBefore: string,
+  _bestmoveUci: string | null,
+  _evalAfter: PositionEval,
+  _moverColor: "w" | "b"
+): boolean {
+  throw new Error("isBestMove is not implemented");
+}
+
 export async function analyzePGN(
   pgn: string,
   options: AnalyzeOptions
