@@ -49,7 +49,7 @@ export function createEngineHolder<E>(
 
   function resetFor(engine: E): void {
     if (currentEngine !== engine) return;
-    const e = currentEngine;
+    const e = engine;
     currentEngine = null;
     enginePromise = null;
     safeDispose(e);
