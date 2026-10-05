@@ -20,7 +20,6 @@ const holder = createEngineHolder(
   async () => {
     const engine = new Stockfish();
     await engine.waitReady();
-    await engine.setOptions({ Threads: 1, Hash: 16, MultiPV: 2 });
     return engine;
   },
   (engine) => {
@@ -87,7 +86,6 @@ export async function POST(req: Request) {
       }
 
       return await holder.run(async (engine) => {
-        await engine.send("ucinewgame");
         return await withTimeout(
           () => engine.analyze(fen, depth, 2),
           ANALYZE_TIMEOUT_MS
