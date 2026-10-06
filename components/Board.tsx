@@ -14,9 +14,10 @@ type BoardProps = {
   onMove: (move: PackedMove) => void;
   bestMove?: string | null;
   motifArrows?: MotifArrow[];
+  viewOnly?: boolean;
 };
 
-export function Board({ game, onMove, bestMove, motifArrows }: BoardProps) {
+export function Board({ game, onMove, bestMove, motifArrows, viewOnly = false }: BoardProps) {
   // Best-move arrow + motif arrows — all managed by the app.
   useEffect(() => {
     game.clearManagedArrows();
@@ -77,6 +78,7 @@ export function Board({ game, onMove, bestMove, motifArrows }: BoardProps) {
         <Chessboard
           game={game}
           onMove={onMove}
+          viewOnly={viewOnly}
           theme={brown}
           pieces={cburnett}
           orientation="white"
