@@ -177,19 +177,21 @@ export default function Home() {
       <div
         style={{
           position: "fixed",
-          bottom: 0,
-          left: 0,
-          right: 0,
+          top: "60px",
+          left: "4px",
           background: "rgba(0,0,0,0.92)",
           color: "#0f0",
-          padding: "6px 10px",
-          fontSize: "11px",
+          padding: "4px 6px",
+          fontSize: "9px",
           fontFamily: "monospace",
           zIndex: 9999,
           whiteSpace: "pre-wrap",
-          lineHeight: 1.4,
+          lineHeight: 1.3,
           direction: "ltr",
           textAlign: "left",
+          pointerEvents: "none",
+          maxWidth: "180px",
+          borderRadius: "3px",
         }}
       >
         {dbg.map((l, i) => (
