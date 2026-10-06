@@ -40,7 +40,7 @@ export default function Home() {
 
   const [selectedPly, setSelectedPly] = useState<number | null>(null);
   const [dbg, setDbg] = useState<string[]>([]);
-  const dlog = (s: string) => setDbg((p) => [...p.slice(-4), s]);
+  const dlog = (s: string) => setDbg((p) => [...p.slice(-9), s]);
 
   const { moves, recordMove } = useMoveHistory({
     fen,
@@ -59,7 +59,6 @@ export default function Home() {
       dlog(`hM ENTER isP=${isPreview} sP=${selectedPly}`);
       if (isPreview) return;
       setSelectedPly(null);
-      dlog(`hM after reset sP=null`);
       const { from, to, promo } = unpackMove(packedMove);
       const options: MoveOptions = {
         from: squareIndexToAlgebraic(from),
