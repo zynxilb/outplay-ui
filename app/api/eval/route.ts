@@ -16,10 +16,14 @@ const MAX_PENDING = 8;
 
 const queue = new SerialQueue({ maxPending: MAX_PENDING });
 
+let lastEngineInitMs: number | null = null;
+
 const holder = createEngineHolder(
   async () => {
+    const t0 = Date.now();
     const engine = new Stockfish();
     await engine.waitReady();
+    lastEngineInitMs = Date.now() - t0;
     return engine;
   },
   (engine) => {
@@ -103,6 +107,7 @@ export async function POST(req: Request) {
       secondScore: secondary
         ? scoreToWhitePerspective(secondary, fen)
         : null,
+      _debug: { engineInitMs: lastEngineInitMs },
     });
   } catch (error: unknown) {
     if (error instanceof TimeoutError) {
