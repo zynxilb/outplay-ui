@@ -40,7 +40,7 @@ export default function Home() {
 
   const [selectedPly, setSelectedPly] = useState<number | null>(null);
   const [dbg, setDbg] = useState<string[]>([]);
-  const dlog = (s: string) => setDbg((p) => [...p.slice(-9), s]);
+  const dlog = (s: string) => setDbg((p) => [...p.slice(-14), s]);
 
   const { moves, recordMove } = useMoveHistory({
     fen,
@@ -53,6 +53,14 @@ export default function Home() {
 
   const viewPly = resolveViewPly(selectedPly, moves.length);
   const isPreview = viewPly !== null;
+
+  useEffect(() => {
+    dlog(`sP→${selectedPly}`);
+  }, [selectedPly]);
+
+  useEffect(() => {
+    dlog(`mL→${moves.length}`);
+  }, [moves.length]);
 
   const handleMove = useCallback(
     (packedMove: PackedMove) => {
