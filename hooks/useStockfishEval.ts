@@ -5,12 +5,6 @@ import { useEffect, useRef, useState } from "react";
 import { fetchEvalFromServer } from "@/lib/chess-helpers";
 import type { EvalResult } from "@/lib/chess-helpers";
 
-type LastRequest = {
-  fen: string;
-  ms: number;
-  status: "ok" | "error";
-};
-
 type UseStockfishEvalResult = {
   evalCp: number;
   bestMove: string | null;
@@ -19,7 +13,6 @@ type UseStockfishEvalResult = {
   loading: boolean;
   cacheVersion: number;
   getEvalForFen: (fen: string) => EvalResult | null;
-  lastRequest: LastRequest | null;
 };
 
 const STARTING_FEN =
@@ -35,27 +28,21 @@ export function useStockfishEval(
   const [engineReady, setEngineReady] = useState(false);
   const [loading, setLoading] = useState(false);
   const [cacheVersion, setCacheVersion] = useState(0);
-  const [lastRequest, setLastRequest] = useState<LastRequest | null>(null);
   const requestIdRef = useRef(0);
   const cacheRef = useRef<Map<string, EvalResult>>(new Map());
 
   // Warm-up call.
   useEffect(() => {
     let cancelled = false;
-    const t0 = performance.now();
     fetchEvalFromServer(STARTING_FEN, depth)
       .then((result) => {
         if (cancelled) return;
-        setLastRequest({ fen: STARTING_FEN, ms: performance.now() - t0, status: "ok" });
         cacheRef.current.set(STARTING_FEN, result);
         setCacheVersion((v) => v + 1);
         setEngineReady(true);
       })
       .catch(() => {
-        if (!cancelled) {
-          setLastRequest({ fen: STARTING_FEN, ms: performance.now() - t0, status: "error" });
-          setEngineReady(false);
-        }
+        if (!cancelled) setEngineReady(false);
       });
     return () => {
       cancelled = true;
@@ -68,13 +55,8 @@ export function useStockfishEval(
 
     const requestId = ++requestIdRef.current;
     setLoading(true);
-    const t0 = performance.now();
 
     fetchEvalFromServer(fen, depth).then((result) => {
-      const ms = performance.now() - t0;
-      if (requestId === requestIdRef.current) {
-        setLastRequest({ fen, ms, status: "ok" });
-      }
       // Always cache the result, even if a newer request has superseded it.
       cacheRef.current.set(fen, result);
       setCacheVersion((v) => v + 1);
@@ -98,6 +80,5 @@ export function useStockfishEval(
     loading,
     cacheVersion,
     getEvalForFen,
-    lastRequest,
   };
 }

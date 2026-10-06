@@ -36,7 +36,6 @@ export default function Home() {
     engineReady,
     cacheVersion,
     getEvalForFen,
-    lastRequest,
   } = useStockfishEval(fen);
 
   const [selectedPly, setSelectedPly] = useState<number | null>(null);
@@ -168,27 +167,6 @@ export default function Home() {
         />
         </div>
       </div>
-      {lastRequest && (
-        <div
-          style={{
-            position: "fixed",
-            top: "4px",
-            left: "4px",
-            background: "rgba(0,0,0,0.9)",
-            color: lastRequest.status === "ok" ? "#0f0" : "#f55",
-            padding: "4px 8px",
-            fontSize: "12px",
-            fontFamily: "monospace",
-            fontWeight: 700,
-            zIndex: 9999,
-            borderRadius: "3px",
-            pointerEvents: "none",
-            direction: "ltr",
-          }}
-        >
-          {lastRequest.status === "ok" ? "OK" : "ERR"} {lastRequest.ms.toFixed(0)}ms
-        </div>
-      )}
     </main>
   );
 }
