@@ -39,6 +39,8 @@ export default function Home() {
   } = useStockfishEval(fen);
 
   const [selectedPly, setSelectedPly] = useState<number | null>(null);
+  const [dbg, setDbg] = useState<string[]>([]);
+  const dlog = (s: string) => setDbg((p) => [...p.slice(-4), s]);
 
   const { moves, recordMove } = useMoveHistory({
     fen,
@@ -54,8 +56,10 @@ export default function Home() {
 
   const handleMove = useCallback(
     (packedMove: PackedMove) => {
+      dlog(`hM ENTER isP=${isPreview} sP=${selectedPly}`);
       if (isPreview) return;
       setSelectedPly(null);
+      dlog(`hM after reset sP=null`);
       const { from, to, promo } = unpackMove(packedMove);
       const options: MoveOptions = {
         from: squareIndexToAlgebraic(from),
@@ -88,6 +92,8 @@ export default function Home() {
   const liveHistoryPlyRef = useRef<number | null>(null);
 
   useEffect(() => {
+    const snap = game.getSnapshot();
+    dlog(`eff prevVP=${prevViewPlyRef.current} vP=${viewPly} sP=${selectedPly} mL=${moves.length} hP=${snap.historyPly} hL=${snap.historyLength}`);
     const wasPreview = prevViewPlyRef.current !== null;
     const enteringPreview = viewPly !== null && !wasPreview;
 
@@ -103,6 +109,7 @@ export default function Home() {
     );
 
     if (action) {
+      dlog(`GOTO ${action.goto}`);
       game.goto(action.goto);
     }
 
@@ -166,6 +173,28 @@ export default function Home() {
           onSelect={setSelectedPly}
         />
         </div>
+      </div>
+      <div
+        style={{
+          position: "fixed",
+          bottom: 0,
+          left: 0,
+          right: 0,
+          background: "rgba(0,0,0,0.92)",
+          color: "#0f0",
+          padding: "6px 10px",
+          fontSize: "11px",
+          fontFamily: "monospace",
+          zIndex: 9999,
+          whiteSpace: "pre-wrap",
+          lineHeight: 1.4,
+          direction: "ltr",
+          textAlign: "left",
+        }}
+      >
+        {dbg.map((l, i) => (
+          <div key={i}>{l}</div>
+        ))}
       </div>
     </main>
   );
