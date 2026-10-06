@@ -1,7 +1,7 @@
 // app/play/page.tsx
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import { useChessGame, unpackMove } from "gigaboard";
 import type { PackedMove } from "gigaboard";
 import { Chess } from "chess.js";
@@ -20,6 +20,8 @@ import { squareIndexToAlgebraic } from "@/lib/chess-helpers";
 import { isSacrifice } from "@/lib/sacrifice-detector";
 import { PROMOTION_PIECES } from "@/lib/types";
 import type { MoveOptions } from "@/lib/types";
+import { resolveViewPly } from "@/lib/view-ply";
+import { nextBoardAction } from "@/lib/next-board-action";
 
 export default function Home() {
   const game = useChessGame();
@@ -47,8 +49,13 @@ export default function Home() {
     getEvalForFen,
   });
 
+  const viewPly = resolveViewPly(selectedPly, moves.length);
+  const isPreview = viewPly !== null;
+
   const handleMove = useCallback(
     (packedMove: PackedMove) => {
+      if (isPreview) return;
+      setSelectedPly(null);
       const { from, to, promo } = unpackMove(packedMove);
       const options: MoveOptions = {
         from: squareIndexToAlgebraic(from),
@@ -73,14 +80,46 @@ export default function Home() {
         // Illegal move — ignore.
       }
     },
-    [chess, recordMove]
+    [chess, recordMove, isPreview]
   );
 
-  const selectedMove = selectedPly
-    ? moves.find((m) => m.ply === selectedPly)
-    : null;
+  // Preview mode: track the transition so we can restore the live ply on exit.
+  const prevViewPlyRef = useRef<number | null>(null);
+  const liveHistoryPlyRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    const wasPreview = prevViewPlyRef.current !== null;
+    const enteringPreview = viewPly !== null && !wasPreview;
+
+    if (enteringPreview) {
+      liveHistoryPlyRef.current = game.getSnapshot().historyPly;
+    }
+
+    const action = nextBoardAction(
+      prevViewPlyRef.current,
+      viewPly,
+      liveHistoryPlyRef.current,
+      game.getSnapshot().historyLength
+    );
+
+    if (action) {
+      game.goto(action.goto);
+    }
+
+    if (viewPly === null && wasPreview) {
+      liveHistoryPlyRef.current = null;
+    }
+
+    prevViewPlyRef.current = viewPly;
+  }, [viewPly, game]);
+
+  const selectedMove =
+    selectedPly !== null
+      ? moves.find((m) => m.ply === selectedPly) ?? null
+      : null;
   const motifArrows = selectedMove?.motifArrows ?? [];
-  const activeBestMove = selectedPly ? null : bestMove;
+  const activeBestMove = isPreview ? null : bestMove;
+  const displayEvalCp = selectedMove?.evalAfter ?? evalCp;
 
   return (
     <main
@@ -103,12 +142,13 @@ export default function Home() {
       </h1>
 
       <div style={{ display: "flex", gap: "16px", flexWrap: "wrap" }}>
-        <EvalBar evalCp={evalCp} height={500} />
+        <EvalBar evalCp={displayEvalCp} height={500} />
         <Board
           game={game}
           onMove={handleMove}
           bestMove={activeBestMove}
           motifArrows={motifArrows}
+          viewOnly={isPreview}
         />
 
         <div
