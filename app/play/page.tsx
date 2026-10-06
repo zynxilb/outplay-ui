@@ -39,8 +39,6 @@ export default function Home() {
   } = useStockfishEval(fen);
 
   const [selectedPly, setSelectedPly] = useState<number | null>(null);
-  const [dbg, setDbg] = useState<string[]>([]);
-  const dlog = (s: string) => setDbg((p) => [...p.slice(-14), s]);
 
   const { moves, recordMove } = useMoveHistory({
     fen,
@@ -54,17 +52,8 @@ export default function Home() {
   const viewPly = resolveViewPly(selectedPly, moves.length);
   const isPreview = viewPly !== null;
 
-  useEffect(() => {
-    dlog(`sP→${selectedPly}`);
-  }, [selectedPly]);
-
-  useEffect(() => {
-    dlog(`mL→${moves.length}`);
-  }, [moves.length]);
-
   const handleMove = useCallback(
     (packedMove: PackedMove) => {
-      dlog(`hM ENTER isP=${isPreview} sP=${selectedPly}`);
       if (isPreview) return;
       setSelectedPly(null);
       const { from, to, promo } = unpackMove(packedMove);
@@ -99,8 +88,6 @@ export default function Home() {
   const liveHistoryPlyRef = useRef<number | null>(null);
 
   useEffect(() => {
-    const snap = game.getSnapshot();
-    dlog(`eff prevVP=${prevViewPlyRef.current} vP=${viewPly} sP=${selectedPly} mL=${moves.length} hP=${snap.historyPly} hL=${snap.historyLength}`);
     const wasPreview = prevViewPlyRef.current !== null;
     const enteringPreview = viewPly !== null && !wasPreview;
 
@@ -116,7 +103,6 @@ export default function Home() {
     );
 
     if (action) {
-      dlog(`GOTO ${action.goto}`);
       game.goto(action.goto);
     }
 
@@ -180,30 +166,6 @@ export default function Home() {
           onSelect={setSelectedPly}
         />
         </div>
-      </div>
-      <div
-        style={{
-          position: "fixed",
-          top: "60px",
-          left: "4px",
-          background: "rgba(0,0,0,0.92)",
-          color: "#0f0",
-          padding: "4px 6px",
-          fontSize: "9px",
-          fontFamily: "monospace",
-          zIndex: 9999,
-          whiteSpace: "pre-wrap",
-          lineHeight: 1.3,
-          direction: "ltr",
-          textAlign: "left",
-          pointerEvents: "none",
-          maxWidth: "180px",
-          borderRadius: "3px",
-        }}
-      >
-        {dbg.map((l, i) => (
-          <div key={i}>{l}</div>
-        ))}
       </div>
     </main>
   );
