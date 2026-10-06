@@ -7,7 +7,7 @@ import { createEngineHolder } from "@/lib/engine-holder";
 import { withTimeout, TimeoutError } from "@/lib/with-timeout";
 
 export const runtime = "nodejs";
-export const maxDuration = 10;
+export const maxDuration = 60;
 
 const ANALYZE_TIMEOUT_MS = 6000;
 const MAX_DEPTH = 18;

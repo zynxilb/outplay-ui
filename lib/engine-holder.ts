@@ -24,8 +24,10 @@ export function createEngineHolder<E>(
 
   function getEngine(): Promise<E> {
     if (!enginePromise) {
+      const t0 = Date.now();
       enginePromise = factory().then(
         (e) => {
+          console.log(`[engine-holder] init: ${Date.now() - t0}ms`);
           currentEngine = e;
           return e;
         },
