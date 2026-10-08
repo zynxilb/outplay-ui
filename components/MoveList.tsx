@@ -103,10 +103,10 @@ export function MoveList({ moves, selectedPly, onSelect }: MoveListProps) {
               >
                 {move.motifs
                   .map((m) => {
-                    if (m === "fork") return "شوكة";
-                    if (m === "pin") return "تثبيت";
-                    if (m === "skewer") return "خازوق";
-                    if (m === "discovered") return "هجوم مكشوف";
+                    if (m === "fork") return "فرصة شوكة";
+                    if (m === "pin") return "ضغط";
+                    if (m === "skewer") return "سكيوير";
+                    if (m === "discovered") return "كشف";
                     return m;
                   })
                   .join(" · ")}
