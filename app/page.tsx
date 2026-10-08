@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { motion, useScroll, useSpring } from "motion/react";
+import { LoadingScreen } from "@/components/LoadingScreen";
 
 function ScrollProgress() {
   const { scrollYProgress } = useScroll();
@@ -176,10 +177,12 @@ function Hero() {
 
 export default function Home() {
   return (
-    <main style={{ minHeight: "100vh", position: "relative" }}>
-      <ScrollProgress />
-      <Nav />
-      <Hero />
-    </main>
+    <LoadingScreen>
+      <main style={{ minHeight: "100vh", position: "relative" }}>
+        <ScrollProgress />
+        <Nav />
+        <Hero />
+      </main>
+    </LoadingScreen>
   );
 }
