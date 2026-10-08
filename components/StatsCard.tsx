@@ -3,10 +3,7 @@
 
 import { useMemo } from "react";
 import type { ClassifiedMove } from "@/lib/types";
-import {
-  estimateGameRating,
-  type MoveClassification,
-} from "@/lib/chess-helpers";
+import type { MoveClassification } from "@/lib/chess-helpers";
 
 type StatsCardProps = {
   moves: ClassifiedMove[];
@@ -14,7 +11,6 @@ type StatsCardProps = {
 
 type SideStats = {
   accuracy: number;
-  gameRating: number;
   counts: Record<MoveClassification, number>;
   totalMoves: number;
 };
@@ -98,7 +94,6 @@ function computeSideStats(moves: ClassifiedMove[], isWhite: boolean): SideStats 
 
   return {
     accuracy,
-    gameRating: estimateGameRating(accuracy),
     counts,
     totalMoves: sideMoves.length,
   };
@@ -248,41 +243,6 @@ export function StatsCard({ moves }: StatsCardProps) {
           }}
         >
           {stats.black.accuracy}%
-        </div>
-      </div>
-
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "1fr 60px 40px 60px",
-          padding: "12px",
-          background: "#262421",
-          fontSize: "13px",
-        }}
-      >
-        <div style={{ color: "#C3C2C1", fontWeight: 700 }}>تقييم المباراة</div>
-        <div
-          style={{
-            textAlign: "center",
-            color: "#95bb4a",
-            fontWeight: 800,
-            fontFamily: "ui-monospace, monospace",
-            fontSize: "14px",
-          }}
-        >
-          {stats.white.gameRating}
-        </div>
-        <div />
-        <div
-          style={{
-            textAlign: "center",
-            color: "#95bb4a",
-            fontWeight: 800,
-            fontFamily: "ui-monospace, monospace",
-            fontSize: "14px",
-          }}
-        >
-          {stats.black.gameRating}
         </div>
       </div>
     </div>
