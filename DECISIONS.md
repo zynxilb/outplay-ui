@@ -24,14 +24,23 @@ The cap is NOT restored (for now).
 
 2 of 4 Brilliants had epBefore ≥ 9000 → cap was blocking real sacrifices.
 
-### Known gap
-- **No negative sample tested.** All games were famous-attacking games.
-- The cap may have been protecting against false positives in ordinary games.
-- Cannot yet conclude that removing the cap is strictly better.
+### Negative sample (validated 2026-10)
+- Game: indense10 (1141) vs 163x (1074), Chess.com rapid
+- Ordinary game, no famous sacrifices; Black blundered once
+- Chess.com analysis: 1 Brilliant (White, 34.Rxg7), 0 Brilliant (Black)
+- Outplay result: 1 Brilliant (34.Rxg7, White), 0 Brilliant (Black) → **exact match**
+- Fixture: `tests/fixtures/indense10-game.json` (72 evals, depth 12)
+- Test: `tests/indense10-fixture.test.ts`
 
-### Review trigger
-- After testing 2-3 ordinary games (preferably with one side heavily winning),
-  count Brilliants with epBefore ≥ 9000 and manually verify each.
+### Known gap (remaining)
+- **Only 1 negative sample.** Suggest testing 1-2 more before final call.
+- The `epBefore >= 9000` Brilliants were not observed in this negative sample
+  (34.Rxg7 had epBefore < 9000), so cap would not have triggered here either.
+- Missing: a negative sample where a false positive with epBefore >= 9000
+  would have been prevented by the cap. Not yet found.
+
+### Review trigger (updated)
+- After 2-3 total ordinary games, re-evaluate.
 
 ### Alternatives (deferred)
 - **Safety cap at 9900**: rejected because it would still block ply 50 (epBefore=10000).
