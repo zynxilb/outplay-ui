@@ -1,50 +1,61 @@
 // lib/sacrifice-detector.ts
-// Detects whether a move sacrifices material for compensation.
+// Detects whether a move sacrifices material, using SEE (Static Exchange
+// Evaluation) rather than geometric heuristics.
 
 import { Chess } from "chess.js";
+import type { Square } from "chess.js";
+import { sacrificeValue, PIECE_VALUES } from "./see.ts";
 
-const PIECE_VALUES: Record<string, number> = {
-  p: 1,
-  n: 3,
-  b: 3,
-  r: 5,
-  q: 9,
-  k: 0,
+const MIN_SACRIFICE_LOSS = 1.5;
+
+export type SacrificeResult = {
+  isSacrifice: boolean;
+  materialLoss: number;
+  capturedValue: number;
 };
 
-/**
- * Returns true if the given move leaves a valuable piece (knight or higher)
- * on a square that is attacked by the opponent and not defended by us.
- *
- * This matches Chess.com's Brilliant detection criterion of "a piece sacrifice".
- *
- * @param fenBefore The position before the move.
- * @param moveUci The move in UCI notation (e.g. "e2e4" or "e7e8q").
- */
-export function isSacrifice(fenBefore: string, moveUci: string): boolean {
-  if (moveUci.length < 4) return false;
+const EMPTY: SacrificeResult = {
+  isSacrifice: false,
+  materialLoss: 0,
+  capturedValue: 0,
+};
+
+export function detectSacrifice(
+  fenBefore: string,
+  moveUci: string
+): SacrificeResult {
+  if (moveUci.length < 4) return EMPTY;
 
   const chess = new Chess(fenBefore);
-  const from = moveUci.slice(0, 2) as never;
-  const to = moveUci.slice(2, 4) as never;
-  const promotion = (moveUci.length > 4 ? moveUci[4] : undefined) as
-    | never
-    | undefined;
+  const from = moveUci.slice(0, 2) as Square;
+  const to = moveUci.slice(2, 4) as Square;
+  const promotion = moveUci.length > 4
+    ? (moveUci[4] as "q" | "r" | "b" | "n")
+    : undefined;
 
+  const targetBefore = chess.get(to);
+  const capturedValue = targetBefore
+    ? PIECE_VALUES[targetBefore.type] ?? 0
+    : 0;
+
+  let result;
   try {
-    const result = chess.move({ from, to, promotion });
-    if (!result) return false;
-
-    const movedValue = PIECE_VALUES[result.piece] ?? 0;
-    if (movedValue < 3) return false;
-
-    const opponentColor = result.color === "w" ? "b" : "w";
-    const attacked = chess.isAttacked(to, opponentColor);
-    if (!attacked) return false;
-
-    const defenders = chess.attackers(to, result.color);
-    return defenders.length === 0;
+    result = chess.move({ from, to, promotion });
   } catch {
-    return false;
+    return EMPTY;
   }
+  if (!result) return EMPTY;
+
+  const opponentGain = sacrificeValue(chess, to);
+  const materialLoss = Math.max(0, opponentGain - capturedValue);
+
+  return {
+    isSacrifice: materialLoss >= MIN_SACRIFICE_LOSS,
+    materialLoss,
+    capturedValue,
+  };
+}
+
+export function isSacrifice(fenBefore: string, moveUci: string): boolean {
+  return detectSacrifice(fenBefore, moveUci).isSacrifice;
 }
