@@ -47,7 +47,6 @@ const MISS_PREV_OPP_BLUNDER = 1000;
 // Brilliant thresholds
 const NEAR_BEST_MAX = 200;       // distinct from EXCELLENT_MAX by meaning
 const BRILLIANT_EP_AFTER_MIN = 5000;
-const BRILLIANT_EP_BEFORE_MAX = 9000;
 
 // Great thresholds
 const GREAT_GAP_MIN = 1000;
@@ -109,8 +108,7 @@ export function classifyMove(input: ClassifyInput): MoveClassification {
   if (
     isNearBest &&
     sacrifice &&
-    epAfter >= BRILLIANT_EP_AFTER_MIN &&
-    epBefore < BRILLIANT_EP_BEFORE_MAX
+    epAfter >= BRILLIANT_EP_AFTER_MIN
   ) {
     return "Brilliant";
   }
