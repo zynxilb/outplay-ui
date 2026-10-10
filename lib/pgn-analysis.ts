@@ -5,6 +5,7 @@ import { classifyMove, epLossFor, type MoveClassification } from "./classify.ts"
 import { InvalidFenError, IllegalMoveError, NetworkError, ApiError } from "./pgn-errors.ts";
 import { parseHeaders, parseMoves, type PGNHeaders } from "./pgn.ts";
 import { mapWithConcurrency } from "./concurrency.ts";
+import { isSacrifice } from "./sacrifice-detector.ts";
 
 // ============ buildPositions ============
 export function buildPositions(sans: string[], startFen?: string): string[] {
@@ -289,12 +290,23 @@ export async function analyzePGN(
       evals[n + 1],
       moverColor
     );
-    const legalMoves = new Chess(fens[n]).moves().length;
+    const chessBefore = new Chess(fens[n]);
+    const legalMoves = chessBefore.moves().length;
+
+    let sacrifice = false;
+    try {
+      const moved = chessBefore.move(sans[n]);
+      if (moved) {
+        sacrifice = isSacrifice(fens[n], toUci(moved));
+      }
+    } catch {
+      // illegal SAN — leave sacrifice as false
+    }
 
     const classification = classifyMove({
       isBest,
       isBook: false,
-      isSacrifice: false,
+      isSacrifice: sacrifice,
       evalBefore: cpBefore,
       evalAfter: cpAfter,
       secondBestEval: cpSecond,
