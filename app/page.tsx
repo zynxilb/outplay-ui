@@ -323,13 +323,7 @@ function Footer() {
         <div className="footer-links arabic">
           <Link href="/import">حلّل مباراتك</Link>
           <Link href="/play">العب على الرقعة</Link>
-          <a
-            href="https://github.com/zynxilb/outplay-ui"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            GitHub
-          </a>
+          <Link href="/about">عن المشروع</Link>
         </div>
 
         <div className="footer-meta arabic">© 2026 Outplay · صُنع في مصر</div>
