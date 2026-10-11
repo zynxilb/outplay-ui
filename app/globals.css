@@ -1741,3 +1741,33 @@ html, body {
     margin: 0 auto;
   }
 }
+
+
+/* ===== MiniBoard scaling ===== */
+.mini-board-wrapper > div {
+  width: 100% !important;
+  height: 100% !important;
+  transform: none !important;
+}
+.mini-board-wrapper > div > div {
+  width: 100% !important;
+  height: 100% !important;
+}
+
+
+/* ===== MiniBoard ===== */
+.mini-board-wrapper {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.45);
+  background: #262421;
+}
+
+/* Force gigaboard to fill the wrapper */
+.mini-board-wrapper > div {
+  width: 100% !important;
+  height: 100% !important;
+}
