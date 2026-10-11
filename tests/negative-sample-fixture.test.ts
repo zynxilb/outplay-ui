@@ -1,5 +1,5 @@
-// tests/indense10-fixture.test.ts
-// Negative-sample fixture: ordinary game (Elo 1141 vs 1074).
+// tests/negative-sample-fixture.test.ts
+// Negative-sample fixture: ordinary game (Elo ~1100).
 // Chess.com analysis: 1 Brilliant (White), 0 Brilliant (Black).
 
 import { test } from "node:test";
@@ -12,13 +12,13 @@ import { analyzePGN, type Evaluator } from "../lib/pgn-analysis.ts";
 
 const here = dirname(fileURLToPath(import.meta.url));
 const fixture = JSON.parse(
-  readFileSync(join(here, "fixtures", "indense10-game.json"), "utf8")
+  readFileSync(join(here, "fixtures", "negative-sample-game.json"), "utf8")
 );
 
 const PGN = `[Site "Chess.com"]
 [Date "2026.10.10"]
-[White "indense10"]
-[Black "163x"]
+[White "Anonymous"]
+[Black "Anonymous"]
 [Result "1-0"]
 [WhiteElo "1141"]
 [BlackElo "1074"]
@@ -38,7 +38,7 @@ const fixtureEvaluator: Evaluator = async (fen) => {
   };
 };
 
-test("indense10 negative sample: exactly 1 Brilliant (34.Rxg7, White)", async () => {
+test("negative sample: exactly 1 Brilliant (34.Rxg7, White)", async () => {
   const { moves } = await analyzePGN(PGN, {
     evaluator: fixtureEvaluator,
     depth: 12,
@@ -65,7 +65,7 @@ test("indense10 negative sample: exactly 1 Brilliant (34.Rxg7, White)", async ()
   assert.equal(turn, "w", "34.Rxg7 is a White move");
 });
 
-test("indense10: no Brilliant for Black (matches Chess.com)", async () => {
+test("negative sample: no Brilliant for Black (matches Chess.com)", async () => {
   const { moves } = await analyzePGN(PGN, {
     evaluator: fixtureEvaluator,
     depth: 12,

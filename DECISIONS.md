@@ -25,12 +25,12 @@ The cap is NOT restored (for now).
 2 of 4 Brilliants had epBefore ≥ 9000 → cap was blocking real sacrifices.
 
 ### Negative sample (validated 2026-10)
-- Game: indense10 (1141) vs 163x (1074), Chess.com rapid
+- Game: Anonymous (Elo ~1100), Chess.com rapid
 - Ordinary game, no famous sacrifices; Black blundered once
 - Chess.com analysis: 1 Brilliant (White, 34.Rxg7), 0 Brilliant (Black)
 - Outplay result: 1 Brilliant (34.Rxg7, White), 0 Brilliant (Black) → **exact match**
-- Fixture: `tests/fixtures/indense10-game.json` (72 evals, depth 12)
-- Test: `tests/indense10-fixture.test.ts`
+- Fixture: `tests/fixtures/negative-sample-game.json` (72 evals, depth 12)
+- Test: `tests/negative-sample-fixture.test.ts`
 
 ### Known gap (remaining)
 - **Only 1 negative sample.** Suggest testing 1-2 more before final call.

@@ -1,7 +1,7 @@
 {
-  "game": "indense10 vs 163x (Chess.com)",
-  "elo": "1141 vs 1074",
-  "source": "Vercel /api/eval",
+  "game": "Anonymous negative sample (Chess.com, Elo ~1100)",
+  "elo": "Anonymous",
+  "source": "Vercel /api/eval (production)",
   "depth": 12,
   "captured_at": "2026-10-10T18:09:14.162Z",
   "chesscom_brilliants": {
@@ -787,5 +787,6 @@
     "6Rk/7p/8/8/5PQ1/7P/1q4PK/2r5 b - - 0 36": {
       "_terminal": true
     }
-  }
+  },
+  "opponent": "Anonymous"
 }
