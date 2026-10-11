@@ -34,13 +34,13 @@ const STYLES: Record<
 > = {
   Brilliant: { symbol: "!!", color: "#1BACA6", label: "عبقرية" },
   Great: { symbol: "!", color: "#5C8BB0", label: "عظيمة" },
-  Best: { symbol: "★", color: "#81B64C", label: "أفضل" },
-  Excellent: { symbol: "👍", color: "#96BC4B", label: "ممتاز" },
-  Good: { symbol: "✓", color: "#96BC4B", label: "جيد" },
-  Book: { symbol: "📖", color: "#A88865", label: "كتاب" },
+  Best: { symbol: "\u2605", color: "#81B64C", label: "أفضل" },
+  Excellent: { symbol: "\uD83D\uDC4D", color: "#96BC4B", label: "ممتاز" },
+  Good: { symbol: "\u2713", color: "#96BC4B", label: "جيد" },
+  Book: { symbol: "\uD83D\uDCD6", color: "#A88865", label: "كتاب" },
   Inaccuracy: { symbol: "?!", color: "#F7C045", label: "غير دقيق" },
   Mistake: { symbol: "?", color: "#E58F2A", label: "خطأ" },
-  Miss: { symbol: "✗", color: "#CA3431", label: "أضاع فرصة" },
+  Miss: { symbol: "\u2717", color: "#CA3431", label: "أضاع فرصة" },
   Blunder: { symbol: "??", color: "#B33430", label: "كارثة" },
 };
 
@@ -99,15 +99,6 @@ function computeSideStats(moves: ClassifiedMove[], isWhite: boolean): SideStats 
   };
 }
 
-const ROW_STYLE: React.CSSProperties = {
-  display: "grid",
-  gridTemplateColumns: "1fr 60px 40px 60px",
-  alignItems: "center",
-  padding: "6px 12px",
-  fontSize: "13px",
-  borderBottom: "1px solid #3C3A38",
-};
-
 export function StatsCard({ moves }: StatsCardProps) {
   const stats = useMemo(
     () => ({
@@ -119,131 +110,54 @@ export function StatsCard({ moves }: StatsCardProps) {
 
   if (moves.length === 0) {
     return (
-      <div
-        style={{
-          background: "#302E2B",
-          border: "1px solid #3d3a37",
-          borderRadius: "6px",
-          padding: "16px 20px",
-          minWidth: "280px",
-          fontSize: "13px",
-          color: "#7d7a76",
-        }}
-      >
-        إحصائيات اللعبة — ابدأ اللعب.
+      <div className="stats-card">
+        <div className="stats-empty arabic">مفيش إحصائيات بعد.</div>
       </div>
     );
   }
 
   return (
-    <div
-      style={{
-        background: "#302E2B",
-        border: "1px solid #3d3a37",
-        borderRadius: "6px",
-        minWidth: "280px",
-        overflow: "hidden",
-      }}
-    >
-      {/* Header */}
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "1fr 60px 40px 60px",
-          padding: "10px 12px",
-          borderBottom: "1px solid #3C3A38",
-          fontSize: "11px",
-          color: "#C3C2C1",
-          textTransform: "uppercase",
-          fontWeight: 600,
-        }}
-      >
-        <div>التصنيف</div>
-        <div style={{ textAlign: "center" }}>أبيض</div>
-        <div style={{ textAlign: "center" }}>—</div>
-        <div style={{ textAlign: "center" }}>أسود</div>
+    <div className="stats-card">
+      {/* Accuracy hero */}
+      <div className="stats-accuracy">
+        <div className="stats-accuracy-side">
+          <div className="stats-accuracy-label arabic">أبيض</div>
+          <div className="stats-accuracy-value">{stats.white.accuracy}%</div>
+        </div>
+        <div className="stats-accuracy-divider" />
+        <div className="stats-accuracy-side">
+          <div className="stats-accuracy-label arabic">أسود</div>
+          <div className="stats-accuracy-value">{stats.black.accuracy}%</div>
+        </div>
       </div>
 
-      {/* Rows */}
-      {ORDER.map((key) => {
-        const style = STYLES[key];
-        const w = stats.white.counts[key];
-        const b = stats.black.counts[key];
-        return (
-          <div key={key} style={ROW_STYLE}>
+      {/* Classifications */}
+      <div className="stats-rows">
+        {ORDER.map((key) => {
+          const style = STYLES[key];
+          const w = stats.white.counts[key];
+          const b = stats.black.counts[key];
+          const bothZero = w === 0 && b === 0;
+          return (
             <div
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: "8px",
-                color: "#C3C2C1",
-              }}
+              key={key}
+              className={`stats-row${bothZero ? " stats-row-dim" : ""}`}
             >
-              <span style={{ color: style.color, fontWeight: 700, width: "20px" }}>
-                {style.symbol}
-              </span>
-              <span style={{ fontSize: "12px" }}>{style.label}</span>
+              <div className="stats-row-label">
+                <span
+                  className="stats-row-symbol"
+                  style={{ color: style.color }}
+                >
+                  {style.symbol}
+                </span>
+                <span className="stats-row-text arabic">{style.label}</span>
+              </div>
+              <div className="stats-row-count">{w}</div>
+              <div className="stats-row-mid">&middot;</div>
+              <div className="stats-row-count">{b}</div>
             </div>
-            <div
-              style={{
-                textAlign: "center",
-                color: w > 0 ? "#FFFFFF" : "#5a5651",
-                fontWeight: 700,
-                fontFamily: "ui-monospace, monospace",
-              }}
-            >
-              {w}
-            </div>
-            <div style={{ textAlign: "center", color: "#5a5651" }}>·</div>
-            <div
-              style={{
-                textAlign: "center",
-                color: b > 0 ? "#FFFFFF" : "#5a5651",
-                fontWeight: 700,
-                fontFamily: "ui-monospace, monospace",
-              }}
-            >
-              {b}
-            </div>
-          </div>
-        );
-      })}
-
-      {/* Accuracy + Game Rating footer */}
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "1fr 60px 40px 60px",
-          padding: "12px",
-          background: "#262421",
-          fontSize: "13px",
-          borderTop: "1px solid #3C3A38",
-        }}
-      >
-        <div style={{ color: "#C3C2C1", fontWeight: 700 }}>الدقة</div>
-        <div
-          style={{
-            textAlign: "center",
-            color: "#3692e7",
-            fontWeight: 800,
-            fontFamily: "ui-monospace, monospace",
-            fontSize: "16px",
-          }}
-        >
-          {stats.white.accuracy}%
-        </div>
-        <div />
-        <div
-          style={{
-            textAlign: "center",
-            color: "#3692e7",
-            fontWeight: 800,
-            fontFamily: "ui-monospace, monospace",
-            fontSize: "16px",
-          }}
-        >
-          {stats.black.accuracy}%
-        </div>
+          );
+        })}
       </div>
     </div>
   );
