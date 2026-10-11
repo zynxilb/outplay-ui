@@ -1273,3 +1273,245 @@ html, body {
 .section-beta .section-title {
   text-align: center;
 }
+
+
+/* ===== Import Page ===== */
+.import-page {
+  min-height: 100dvh;
+  background: var(--bg);
+  color: var(--text);
+}
+
+.import-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 24px;
+  border-bottom: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+  background: rgba(13, 14, 17, 0.85);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  z-index: 50;
+}
+
+.import-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  text-decoration: none;
+  color: var(--text);
+}
+
+.import-brand .serif {
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.import-nav-link {
+  color: var(--text-dim);
+  text-decoration: none;
+  font-size: 14px;
+  transition: color 0.2s ease;
+}
+
+.import-nav-link:hover {
+  color: var(--accent);
+}
+
+.import-main {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: clamp(40px, 8vh, 80px) 24px 120px;
+}
+
+.import-header {
+  margin-bottom: 40px;
+}
+
+.import-header .section-eyebrow {
+  text-align: right;
+}
+
+.import-header .section-title {
+  text-align: right;
+  margin: 0 0 12px;
+}
+
+.import-subtitle {
+  color: var(--text-dim);
+  font-size: 15px;
+  line-height: 1.7;
+  margin: 0;
+}
+
+.import-input-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.import-textarea {
+  width: 100%;
+  min-height: 200px;
+  background: rgba(255, 255, 255, 0.02);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 18px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 14px;
+  line-height: 1.6;
+  resize: vertical;
+  outline: none;
+  box-sizing: border-box;
+  transition: border-color 0.2s ease;
+}
+
+.import-textarea:focus {
+  border-color: rgba(216, 64, 64, 0.5);
+}
+
+.import-textarea::placeholder {
+  color: var(--text-muted);
+}
+
+.import-actions {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.import-file-label {
+  color: var(--text-dim);
+  font-size: 14px;
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+  transition: color 0.2s ease;
+}
+
+.import-file-label:hover {
+  color: var(--text);
+}
+
+.import-error {
+  padding: 16px 18px;
+  background: rgba(216, 64, 64, 0.08);
+  border-inline-start: 3px solid var(--accent);
+  border-radius: 8px;
+}
+
+.import-error-msg {
+  margin: 0;
+  color: var(--accent);
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.import-cancelled {
+  color: var(--text-dim);
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.import-link {
+  background: none;
+  border: none;
+  padding: 0;
+  color: var(--text);
+  font-family: inherit;
+  font-size: inherit;
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+  transition: color 0.2s ease;
+}
+
+.import-link:hover {
+  color: var(--accent);
+}
+
+.import-progress-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.import-progress-header {
+  display: flex;
+  justify-content: space-between;
+  font-size: 14px;
+  color: var(--text-dim);
+}
+
+.import-progress-count {
+  font-variant-numeric: tabular-nums;
+}
+
+.import-progress-bar {
+  height: 3px;
+  background: var(--border);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.import-progress-fill {
+  height: 100%;
+  background: var(--accent);
+  transition: width 0.3s ease;
+}
+
+.import-results {
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+}
+
+.import-game-header {
+  padding-bottom: 20px;
+  border-bottom: 1px solid var(--border);
+}
+
+.import-players {
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--text);
+  line-height: 1.5;
+}
+
+.import-vs {
+  color: var(--text-muted);
+  margin: 0 10px;
+  font-weight: 400;
+}
+
+.import-moves-count {
+  font-size: 13px;
+  color: var(--text-dim);
+  margin-top: 6px;
+}
+
+.import-reset-wrap {
+  margin-top: 20px;
+}
+
+@media (max-width: 768px) {
+  .import-nav {
+    padding: 16px 20px;
+  }
+  .import-main {
+    padding: 32px 20px 100px;
+  }
+  .import-textarea {
+    min-height: 160px;
+    padding: 14px;
+    font-size: 13px;
+  }
+  .import-players {
+    font-size: 15px;
+  }
+}
