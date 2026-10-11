@@ -2,7 +2,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { track } from "@vercel/analytics";
+
 import {
   analyzePGN,
   isAbortError,
@@ -32,6 +32,12 @@ export interface UsePgnImport {
   cancel: () => void;
   reset: () => void;
   loadFile: (file: File | null) => Promise<void>;
+}
+
+function track(event: string, data?: Record<string, unknown>) {
+  if (typeof window !== "undefined" && window.umami) {
+    window.umami.track(event, data);
+  }
 }
 
 export function usePgnImport(): UsePgnImport {

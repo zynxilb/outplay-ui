@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Script from "next/script";
 import { Analytics } from "@vercel/analytics/next";
 import { SplashSkipScript } from "@/components/SplashSkipScript";
 import "./globals.css";
@@ -27,6 +28,11 @@ export default function RootLayout({
         <SplashSkipScript />
         {children}
         <Analytics />
+        <Script
+          src="https://umami-two-nu.vercel.app/script.js"
+          data-website-id="cba17b50-a680-47d3-abc3-f6f2251c87e5"
+          strategy="afterInteractive"
+        />
       </body>
     </html>
   );
