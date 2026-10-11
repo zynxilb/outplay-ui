@@ -54,7 +54,7 @@ function Nav() {
       <div className="nav-links">
         <a href="#how">How it works</a>
         <a href="#features">Features</a>
-        <a href="#about">About</a>
+        <Link href="/about">عن المشروع</Link>
       </div>
     </nav>
   );
@@ -290,7 +290,7 @@ function Features() {
 
 function FinalCTA() {
   return (
-    <section className="section" style={{ textAlign: "center" }} id="about">
+    <section className="section" style={{ textAlign: "center" }}>
       <ScrollReveal>
         <h2
           className="section-title arabic"
@@ -321,6 +321,7 @@ function Footer() {
         </div>
 
         <div className="footer-links arabic">
+          <Link href="/about">عن المشروع</Link>
           <Link href="/import">حلّل مباراتك</Link>
           <Link href="/play">العب على الرقعة</Link>
           <a
