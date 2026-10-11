@@ -2,6 +2,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { track } from "@vercel/analytics";
 import {
   analyzePGN,
   isAbortError,
@@ -57,6 +58,9 @@ export function usePgnImport(): UsePgnImport {
 
     setState({ kind: "analyzing", done: 0, total: 0 });
 
+    const startedAt = Date.now();
+    track("analysis_started");
+
     try {
       const { headers, moves } = await analyzePGN(text, {
         evaluator: makeApiEvaluator(),
@@ -68,16 +72,30 @@ export function usePgnImport(): UsePgnImport {
       });
 
       if (acRef.current !== ac) return;
+
+      const classified = toClassifiedMoves(moves);
+      track("analysis_completed", {
+        moves_count: moves.length,
+        duration_ms: Date.now() - startedAt,
+        brilliants: classified.filter((m) => m.classification === "Brilliant").length,
+        blunders: classified.filter((m) => m.classification === "Blunder").length,
+      });
+
       setState({
         kind: "done",
         headers,
-        moves: toClassifiedMoves(moves),
+        moves: classified,
       });
     } catch (err) {
       if (acRef.current !== ac) return;
       if (isAbortError(err) || ac.signal.aborted) {
+        track("analysis_cancelled", { duration_ms: Date.now() - startedAt });
         setState({ kind: "cancelled" });
       } else {
+        track("analysis_failed", {
+          reason: err instanceof Error ? err.name : "unknown",
+          duration_ms: Date.now() - startedAt,
+        });
         setState({ kind: "error", message: toArabicError(err) });
       }
     } finally {
