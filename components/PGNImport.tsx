@@ -5,6 +5,7 @@ import { useRef, useState } from "react";
 import Link from "next/link";
 import { usePgnImport } from "@/hooks/usePgnImport";
 import { MoveList } from "./MoveList";
+import { MiniBoard } from "./MiniBoard";
 import { StatsCard } from "./StatsCard";
 
 const EXAMPLE_PGN = `[Event "Casual"]
@@ -13,6 +14,13 @@ const EXAMPLE_PGN = `[Event "Casual"]
 [Result "1-0"]
 
 1. e4 e5 2. Nf3 Nc6 3. Bb5 a6 4. Ba4 Nf6 5. O-O Be7 6. Re1 b5 7. Bb3 d6 8. c3 O-O 9. h3 Nb8 10. d4 Nbd7 1-0`;
+
+function phaseOfPly(ply: number): { ar: string; en: string } {
+  const move = Math.ceil(ply / 2);
+  if (move <= 10) return { ar: "الافتتاحية", en: "opening" };
+  if (move <= 30) return { ar: "وسط اللعب", en: "middlegame" };
+  return { ar: "النهاية", en: "endgame" };
+}
 
 export function PGNImport() {
   const { state, text, setText, analyze, cancel, reset, loadFile } =
@@ -166,38 +174,61 @@ export function PGNImport() {
         )}
 
         {kind === "analyzing" && (
-          <div className="import-loading">
-            <div className="import-loading-rook">
-              <img src="/logo/rook.svg" alt="" width={72} height={72} />
+          <div className="import-journey">
+            <div className="import-journey-board">
+              {state.currentFen ? (
+                <MiniBoard fen={state.currentFen} />
+              ) : (
+                <div className="import-journey-placeholder arabic">
+                  بنجهّز الموقف...
+                </div>
+              )}
             </div>
-            <div className="import-loading-title arabic">
-              {state.total > 0 ? "بيتم التحليل..." : "بيتم التحضير..."}
-            </div>
-            {state.total > 0 && (
-              <div className="import-loading-count">
-                {state.done} / {state.total}
+
+            <div className="import-journey-info">
+              <div className="import-journey-phase arabic">
+                {state.total > 0
+                  ? phaseOfPly(Math.max(state.done, 1)).ar
+                  : "التحضير"}
               </div>
-            )}
 
-            <div className="import-progress-bar">
-              <div
-                className="import-progress-fill"
-                style={{
-                  width:
-                    state.total > 0
-                      ? `${(state.done / state.total) * 100}%`
-                      : "0%",
-                }}
-              />
+              <div className="import-journey-san">
+                {state.currentSan ? (
+                  <span dir="ltr" className="mono">
+                    {state.currentSan}
+                  </span>
+                ) : (
+                  <span className="arabic" style={{ color: "var(--text-muted)" }}>
+                    —
+                  </span>
+                )}
+              </div>
+
+              <div className="import-journey-progress">
+                <div className="import-journey-count">
+                  {state.done} / {state.total || "?"}
+                </div>
+                <div className="import-progress-bar">
+                  <div
+                    className="import-progress-fill"
+                    style={{
+                      width:
+                        state.total > 0
+                          ? `${(state.done / state.total) * 100}%`
+                          : "0%",
+                    }}
+                  />
+                </div>
+              </div>
+
+              <button
+                type="button"
+                onClick={cancel}
+                className="import-link arabic import-journey-cancel"
+              >
+                إلغاء
+              </button>
             </div>
-
-            <button
-              type="button"
-              onClick={cancel}
-              className="import-link arabic"
-            >
-              إلغاء
-            </button>
           </div>
         )}
 

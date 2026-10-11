@@ -1515,3 +1515,229 @@ html, body {
     font-size: 15px;
   }
 }
+
+
+/* ===== Import — Input Card ===== */
+.import-input-card {
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.02);
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.import-input-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.import-input-label {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+}
+
+.import-input-actions-mini {
+  display: flex;
+  gap: 8px;
+}
+
+.import-chip {
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text-dim);
+  font-size: 12px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  cursor: pointer;
+  font-family: inherit;
+  transition: all 0.2s ease;
+}
+
+.import-chip:hover {
+  border-color: rgba(216, 64, 64, 0.5);
+  color: var(--accent);
+}
+
+.import-input-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.import-input-meta {
+  font-size: 12px;
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+  display: flex;
+  gap: 6px;
+}
+
+.import-input-hint {
+  color: var(--text-muted);
+}
+
+/* ===== Import — Loading ===== */
+.import-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+  padding: 60px 20px;
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.import-loading-rook {
+  animation: import-rook-pulse 2s ease-in-out infinite;
+}
+
+.import-loading-rook img {
+  display: block;
+}
+
+@keyframes import-rook-pulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 0.85;
+  }
+  50% {
+    transform: scale(1.08);
+    opacity: 1;
+  }
+}
+
+.import-loading-title {
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.import-loading-count {
+  font-size: 14px;
+  color: var(--text-dim);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.05em;
+}
+
+.import-loading .import-progress-bar {
+  width: 100%;
+  max-width: 320px;
+}
+
+.import-loading .import-link {
+  margin-top: 8px;
+  font-size: 13px;
+  color: var(--text-dim);
+}
+
+@media (max-width: 768px) {
+  .import-input-card {
+    padding: 16px;
+  }
+  .import-loading {
+    padding: 44px 16px;
+  }
+}
+
+
+/* ===== Import Journey (loading) ===== */
+.import-journey {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 32px;
+  padding: 32px;
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.02);
+  align-items: center;
+}
+
+.import-journey-board {
+  aspect-ratio: 1 / 1;
+  width: 100%;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.35);
+}
+
+.import-journey-placeholder {
+  aspect-ratio: 1 / 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 12px;
+  color: var(--text-dim);
+  font-size: 15px;
+}
+
+.import-journey-info {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  min-width: 0;
+}
+
+.import-journey-phase {
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+.import-journey-san {
+  font-size: 44px;
+  font-weight: 700;
+  color: var(--text);
+  line-height: 1;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+  min-height: 44px;
+}
+
+.import-journey-progress {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.import-journey-count {
+  font-size: 14px;
+  color: var(--text-dim);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.05em;
+}
+
+.import-journey-cancel {
+  align-self: flex-start;
+  font-size: 13px;
+  color: var(--text-muted);
+  margin-top: 4px;
+}
+
+@media (max-width: 768px) {
+  .import-journey {
+    grid-template-columns: 1fr;
+    gap: 20px;
+    padding: 20px;
+  }
+  .import-journey-san {
+    font-size: 32px;
+    min-height: 32px;
+  }
+  .import-journey-board {
+    max-width: 320px;
+    margin: 0 auto;
+  }
+}

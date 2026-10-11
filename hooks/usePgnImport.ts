@@ -5,11 +5,13 @@ import { useEffect, useRef, useState } from "react";
 
 import {
   analyzePGN,
+  buildPositions,
   isAbortError,
   makeApiEvaluator,
+  startFenFromHeaders,
   toClassifiedMoves,
 } from "@/lib/pgn-analysis";
-import type { PGNHeaders } from "@/lib/pgn";
+import { parseMoves, type PGNHeaders } from "@/lib/pgn";
 import { toArabicError } from "@/lib/pgn-errors-ar";
 import {
   pgnValidationMessageAr,
@@ -19,7 +21,13 @@ import type { ClassifiedMove } from "@/lib/types";
 
 export type PgnImportState =
   | { kind: "idle" }
-  | { kind: "analyzing"; done: number; total: number }
+  | {
+      kind: "analyzing";
+      done: number;
+      total: number;
+      currentFen?: string;
+      currentSan?: string;
+    }
   | { kind: "done"; headers: PGNHeaders; moves: ClassifiedMove[] }
   | { kind: "error"; message: string }
   | { kind: "cancelled" };
@@ -62,7 +70,22 @@ export function usePgnImport(): UsePgnImport {
     const ac = new AbortController();
     acRef.current = ac;
 
-    setState({ kind: "analyzing", done: 0, total: 0 });
+    // Pre-compute FENs so we can show the current position during analysis.
+    let fens: string[] = [];
+    let sans: string[] = [];
+    try {
+      sans = parseMoves(text);
+      fens = buildPositions(sans, startFenFromHeaders(text));
+    } catch {
+      fens = [];
+    }
+
+    setState({
+      kind: "analyzing",
+      done: 0,
+      total: sans.length,
+      currentFen: fens[0],
+    });
 
     const startedAt = Date.now();
     track("analysis_started");
@@ -73,7 +96,14 @@ export function usePgnImport(): UsePgnImport {
         signal: ac.signal,
         onProgress: (done, total) => {
           if (acRef.current !== ac) return;
-          setState({ kind: "analyzing", done, total });
+          const idx = Math.min(done, fens.length - 1);
+          setState({
+            kind: "analyzing",
+            done,
+            total,
+            currentFen: fens[idx],
+            currentSan: done > 0 ? sans[done - 1] : undefined,
+          });
         },
       });
 
@@ -83,8 +113,10 @@ export function usePgnImport(): UsePgnImport {
       track("analysis_completed", {
         moves_count: moves.length,
         duration_ms: Date.now() - startedAt,
-        brilliants: classified.filter((m) => m.classification === "Brilliant").length,
-        blunders: classified.filter((m) => m.classification === "Blunder").length,
+        brilliants: classified.filter((m) => m.classification === "Brilliant")
+          .length,
+        blunders: classified.filter((m) => m.classification === "Blunder")
+          .length,
       });
 
       setState({
@@ -122,7 +154,10 @@ export function usePgnImport(): UsePgnImport {
     if (!file) return;
     try {
       if (file.size > 1_000_000) {
-        setState({ kind: "error", message: pgnValidationMessageAr("too-large") });
+        setState({
+          kind: "error",
+          message: pgnValidationMessageAr("too-large"),
+        });
         return;
       }
       const fileText = await file.text();
