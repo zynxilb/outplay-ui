@@ -81,6 +81,8 @@ export function LoadingScreen({ children }: { children: React.ReactNode }) {
             transition={{ duration: 0.4, ease: "easeOut" }}
           >
             <div
+              dir="ltr"
+              className="loading-desktop"
               style={{
                 display: "flex",
                 alignItems: "center",
@@ -120,6 +122,16 @@ export function LoadingScreen({ children }: { children: React.ReactNode }) {
               />
 
               {sideText("play", "right")}
+            </div>
+            <div className="loading-mobile">
+              <div className="outplay-loader">
+                <div className="outplay-loader-ring">
+                  <div className="outplay-loader-dot" />
+                </div>
+              </div>
+              <div className="serif" style={{ fontSize: "32px", fontWeight: 700, color: "#EEEEEE", letterSpacing: "-0.03em" }}>
+                Outplay
+              </div>
             </div>
           </motion.div>
         )}

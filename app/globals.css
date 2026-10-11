@@ -829,3 +829,18 @@ html, body {
   .wheel-stage .step-title { font-size: clamp(20px, 7vw, 28px); }
   .wheel-stage .step-body { font-size: 14px; }
 }
+
+
+/* ===== Loading Screen — Responsive ===== */
+.loading-mobile { display: none; }
+
+@media (max-width: 768px) {
+  .loading-desktop { display: none !important; }
+  .loading-mobile {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 24px;
+  }
+}
