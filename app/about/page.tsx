@@ -22,10 +22,10 @@ export default function AboutPage() {
           → رجوع
         </Link>
 
-        <div className="section-eyebrow arabic">عن المشروع</div>
-        <h1 className="section-title arabic" style={{ marginBottom: "32px" }}>
-          ليه Outplay؟
-        </h1>
+        <div className="about-header">
+          <div className="section-eyebrow arabic">عن المشروع</div>
+          <h1 className="section-title arabic">ليه Outplay؟</h1>
+        </div>
 
         <div className="about-content arabic">
           <p>
@@ -45,17 +45,10 @@ export default function AboutPage() {
             المفروض تلعبه.
           </p>
 
-          <h2 className="about-h2">المبادئ</h2>
+          <h2 className="about-h2 arabic">المبادئ</h2>
           <ul className="about-list">
             <li>
               <strong>مجاني.</strong> التحليل، الرقعة، كل حاجة. مفيش اشتراك، مفيش إعلانات.
-            </li>
-            <li>
-              <strong>شفافية.</strong> الكود مفتوح على{" "}
-              <a href="https://github.com/zynxilb/outplay-ui" target="_blank" rel="noopener noreferrer">
-                GitHub
-              </a>
-              . تقدر تشوف بنفسك إزاي بنحلل.
             </li>
             <li>
               <strong>خصوصية.</strong> مفيش تسجيل، مفيش تتبع، ومبارياتك مش بتتخزن.
@@ -65,20 +58,16 @@ export default function AboutPage() {
             </li>
           </ul>
 
-          <h2 className="about-h2">التقنية</h2>
+          <h2 className="about-h2 arabic">التقنية</h2>
           <p>
             Outplay مبني على <strong>Next.js</strong> و <strong>React</strong>،
-            وبيستخدم <strong>Stockfish 17.1</strong> (WASM) للتحليل. الـinterface
-            عربي بالكامل، والتحليل بيشتغل في المتصفح.
+            وبيستخدم <strong>Stockfish 17.1</strong> للتحليل. الـinterface
+            عربي بالكامل.
           </p>
 
-          <h2 className="about-h2">تواصل</h2>
+          <h2 className="about-h2 arabic">تواصل</h2>
           <p>
-            عندك سؤال، اقتراح، أو لقيت bug؟ افتح issue على{" "}
-            <a href="https://github.com/zynxilb/outplay-ui/issues" target="_blank" rel="noopener noreferrer">
-              GitHub
-            </a>
-            .
+            عندك سؤال أو اقتراح؟ تواصل معنا قريبًا — قناة التواصل هتنزل مع البيتا.
           </p>
         </div>
 

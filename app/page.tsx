@@ -321,7 +321,6 @@ function Footer() {
         </div>
 
         <div className="footer-links arabic">
-          <Link href="/about">عن المشروع</Link>
           <Link href="/import">حلّل مباراتك</Link>
           <Link href="/play">العب على الرقعة</Link>
           <a
