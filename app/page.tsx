@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRef } from "react";
 import { motion, useInView, useScroll, useTransform, type MotionValue } from "motion/react";
 import { LoadingScreen } from "@/components/LoadingScreen";
+import { FAQ } from "@/components/FAQ";
 import { useSplashDone } from "@/contexts/SplashContext";
 
 function ArrowIcon() {
@@ -346,6 +347,7 @@ export default function Home() {
         <HowItWorks />
         <Problem />
         <Features />
+        <FAQ />
         <FinalCTA />
         <Footer />
       </main>
