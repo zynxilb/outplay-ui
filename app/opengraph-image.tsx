@@ -17,11 +17,37 @@ export default function Image() {
           alignItems: "center",
           justifyContent: "center",
           background: "#0D0E11",
+          position: "relative",
         }}
       >
+        {/* Red glow */}
         <div
           style={{
-            fontSize: 140,
+            position: "absolute",
+            width: 800,
+            height: 800,
+            borderRadius: "50%",
+            background:
+              "radial-gradient(circle, rgba(216,64,64,0.18) 0%, rgba(216,64,64,0.05) 45%, transparent 70%)",
+            top: "50%",
+            left: "50%",
+            transform: "translate(-50%, -50%)",
+          }}
+        />
+
+        {/* Rook image from public */}
+        <img
+          src="https://outplay-ui-one.vercel.app/logo/rook.svg"
+          width={130}
+          height={130}
+          alt=""
+          style={{ marginBottom: 28 }}
+        />
+
+        {/* Outplay title */}
+        <div
+          style={{
+            fontSize: 128,
             fontWeight: 700,
             color: "#EEEEEE",
             fontFamily: "Georgia, serif",
@@ -31,20 +57,13 @@ export default function Image() {
         >
           Outplay
         </div>
-        <div
-          style={{
-            fontSize: 36,
-            color: "#D84040",
-            marginTop: 32,
-          }}
-        >
-          ♜
-        </div>
+
+        {/* Subtitle */}
         <div
           style={{
             fontSize: 28,
             color: "#6D6D75",
-            marginTop: 24,
+            marginTop: 28,
           }}
         >
           Arabic Chess Analysis
