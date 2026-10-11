@@ -1189,3 +1189,71 @@ html, body {
     margin-top: 48px;
   }
 }
+
+
+/* ===== Beta Invite ===== */
+.section-beta {
+  text-align: center;
+}
+
+.beta-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+  max-width: 720px;
+  margin: 0 auto 40px;
+}
+
+.beta-stat {
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 28px 16px;
+  background: rgba(255, 255, 255, 0.02);
+  transition: border-color 0.25s ease, background 0.25s ease;
+}
+
+.beta-stat:hover {
+  border-color: rgba(216, 64, 64, 0.45);
+  background: rgba(216, 64, 64, 0.04);
+}
+
+.beta-stat-num {
+  font-size: 44px;
+  font-weight: 700;
+  color: var(--accent);
+  line-height: 1;
+  margin-bottom: 12px;
+  letter-spacing: -0.02em;
+}
+
+.beta-stat-label {
+  font-size: 14px;
+  color: var(--text-dim);
+  line-height: 1.4;
+}
+
+.beta-note {
+  color: var(--text-dim);
+  font-size: 15px;
+  margin: 0;
+}
+
+@media (max-width: 768px) {
+  .beta-stats {
+    gap: 12px;
+    margin-bottom: 32px;
+  }
+  .beta-stat {
+    padding: 20px 10px;
+  }
+  .beta-stat-num {
+    font-size: 32px;
+    margin-bottom: 8px;
+  }
+  .beta-stat-label {
+    font-size: 12px;
+  }
+  .beta-note {
+    font-size: 14px;
+  }
+}

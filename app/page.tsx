@@ -288,6 +288,45 @@ function Features() {
   );
 }
 
+function BetaInvite() {
+  return (
+    <section className="section section-beta" id="beta">
+      <ScrollReveal>
+        <div className="section-eyebrow arabic">البيتا</div>
+      </ScrollReveal>
+      <ScrollReveal delay={0.05}>
+        <h2 className="section-title arabic">إحنا في البداية</h2>
+      </ScrollReveal>
+      <ScrollReveal delay={0.15}>
+        <p className="section-body arabic" style={{ marginBottom: "40px" }}>
+          لسه مفيش مستخدمين. بنبني حاجة جديدة، ومحتاجين أول ناس تجربها وتساعدنا نحسّنها.
+        </p>
+      </ScrollReveal>
+      <ScrollReveal delay={0.25}>
+        <div className="beta-stats">
+          <div className="beta-stat">
+            <div className="beta-stat-num serif">0</div>
+            <div className="beta-stat-label arabic">مستخدم حالي</div>
+          </div>
+          <div className="beta-stat">
+            <div className="beta-stat-num serif">∞</div>
+            <div className="beta-stat-label arabic">فرصة تسبقنا</div>
+          </div>
+          <div className="beta-stat">
+            <div className="beta-stat-num serif">1</div>
+            <div className="beta-stat-label arabic">هدف: نتعلّم سوا</div>
+          </div>
+        </div>
+      </ScrollReveal>
+      <ScrollReveal delay={0.35}>
+        <p className="beta-note arabic">
+          جرّب، وابعتلنا رأيك. كل feedback بيفرق.
+        </p>
+      </ScrollReveal>
+    </section>
+  );
+}
+
 function FinalCTA() {
   return (
     <section className="section" style={{ textAlign: "center" }}>
@@ -342,6 +381,7 @@ export default function Home() {
         <Problem />
         <Features />
         <FAQ />
+        <BetaInvite />
         <FinalCTA />
         <Footer />
       </main>
