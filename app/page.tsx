@@ -299,7 +299,7 @@ function BetaInvite() {
       </ScrollReveal>
       <ScrollReveal delay={0.15}>
         <p className="section-body arabic" style={{ marginBottom: "40px" }}>
-          لسه مفيش مستخدمين. بنبني حاجة جديدة، ومحتاجين أول ناس تجربها وتساعدنا نحسّنها.
+          Outplay لسه في بدايته. لو عايز تكون من أول اللي يجرّبوه — إنت في المكان الصح.
         </p>
       </ScrollReveal>
       <ScrollReveal delay={0.25}>

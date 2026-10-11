@@ -1257,3 +1257,19 @@ html, body {
     font-size: 14px;
   }
 }
+
+
+/* ===== Beta section — center fix ===== */
+.section-beta .section-body {
+  margin: 0 auto 40px;
+  text-align: center;
+}
+
+.section-beta .beta-note {
+  text-align: center;
+}
+
+.section-beta .section-eyebrow,
+.section-beta .section-title {
+  text-align: center;
+}
