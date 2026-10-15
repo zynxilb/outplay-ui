@@ -5,6 +5,7 @@ import { useRef } from "react";
 import { motion, useInView, useScroll, useTransform, type MotionValue } from "motion/react";
 import { LoadingScreen } from "@/components/LoadingScreen";
 import { FAQ } from "@/components/FAQ";
+import { CinematicFooter } from "@/components/CinematicFooter";
 import { useSplashDone } from "@/contexts/SplashContext";
 
 function ArrowIcon() {
@@ -348,28 +349,6 @@ function FinalCTA() {
   );
 }
 
-function Footer() {
-  return (
-    <footer className="footer">
-      <div className="footer-inner">
-        <div className="footer-brand">
-          <img src="/logo/rook.svg" alt="" width={32} height={32} />
-          <span className="serif" style={{ fontSize: "20px", fontWeight: 700 }}>
-            Outplay
-          </span>
-        </div>
-
-        <div className="footer-links arabic">
-          <Link href="/import">حلّل مباراتك</Link>
-          <Link href="/play">العب على الرقعة</Link>
-          <Link href="/about">عن المشروع</Link>
-        </div>
-
-        <div className="footer-meta arabic">© 2026 Outplay · صُنع في مصر</div>
-      </div>
-    </footer>
-  );
-}
 
 export default function Home() {
   return (
@@ -383,8 +362,8 @@ export default function Home() {
         <FAQ />
         <BetaInvite />
         <FinalCTA />
-        <Footer />
       </main>
+      <CinematicFooter />
     </LoadingScreen>
   );
 }
